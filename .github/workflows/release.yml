@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  release:
+    if: ${{ !contains(github.event.head_commit.message, '[skip release]') }}
+    runs-on: ubuntu-latest
+    concurrency: release
+    steps:
+    - name: Wait for pylint to succeed
+      uses: lewagon/wait-on-check-action@v1.3.1
+      with:
+        ref: ${{ github.ref }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+        running-workflow-name: wait-for-check-regexp
+        check-regexp: pylint\ \(.*\)
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        architecture: 'x64'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-ci.txt
+
+    - name: Check if release is needed
+      id: is-release-needed
+      run: |
+        next="$(python -m semantic_release version --major --print --no-commit)"
+        current="$(cat setup.py | grep -oP '^__version__ = .*$' | grep -oP '((\d+\.){2}\d)')"
+        echo "Current version: ${current}"
+        echo "Next version: ${next}"
+        if [ "$next" = "$current" ]; then
+          echo "release-needed=false" >> $GITHUB_ENV
+          echo "No release needed"
+        else
+          echo "release-needed=true" >> $GITHUB_ENV
+          echo "New release needed"
+        fi
+
+    - name: Set release version
+      if: ${{ env.release-needed == 'true' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: python -m semantic_release version --major
+
+    - name: Build dist
+      if: ${{ env.release-needed == 'true' }}
+      run: python -m build
+
+    - name: Upload to PyPI
+      if: ${{ env.release-needed == 'true' }}
+      run: python -m twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} dist/*
+
+    - name: Release
+      if: ${{ env.release-needed == 'true' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: python -m semantic_release publish
+    
