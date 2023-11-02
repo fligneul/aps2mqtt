@@ -1,5 +1,5 @@
 [![Maintenance badge](https://img.shields.io/maintenance/yes/2023)](https://github.com/fligneul/aps2mqtt)
-[![Release badge](https://img.shields.io/github/v/release/fligneul/aps2mqtt)](https://github.com/fligneul/aps2mqtt)
+[![Release badge](https://img.shields.io/github/v/release/fligneul/aps2mqtt)](https://github.com/fligneul/aps2mqtt/releases)
 [![PyPI version](https://badge.fury.io/py/aps2mqtt.svg)](https://badge.fury.io/py/aps2mqtt)
 [![Semantic release angular](https://img.shields.io/badge/python_semantic_release-angular-e10079?logo=semantic-release
 )](https://github.com/python-semantic-release/python-semantic-release)
