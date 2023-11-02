@@ -39,7 +39,7 @@ jobs:
     - name: Check if release is needed
       id: is-release-needed
       run: |
-        next="$(python -m semantic_release version --major --print --no-commit)"
+        next="$(python -m semantic_release version --print --no-commit)"
         current="$(cat setup.py | grep -oP '^__version__ = .*$' | grep -oP '((\d+\.){2}\d)')"
         echo "Current version: ${current}"
         echo "Next version: ${next}"
@@ -55,7 +55,7 @@ jobs:
       if: ${{ env.release-needed == 'true' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: python -m semantic_release version --major
+      run: python -m semantic_release version
 
     - name: Build dist
       if: ${{ env.release-needed == 'true' }}
