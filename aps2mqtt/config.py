@@ -13,6 +13,9 @@ class MQTTConfig:
         self.broker_passwd = cfg.get("MQTT_BROKER_PASSWD", "")
         self.client_id = cfg.get("MQTT_CLIENT_ID", "APS2MQTT")
         self.topic_prefix = cfg.get("MQTT_TOPIC_PREFIX", "")
+        self.secured_connection = cfg.get("MQTT_BROKER_SECURED_CONNECTION", False)
+        if self.secured_connection:
+            self.cacerts_path = cfg.get("MQTT_BROKER_CACERTS_PATH", None)
 
 
 class ECUConfig:

@@ -3,6 +3,7 @@ import logging
 import time
 import atexit
 import numpy
+import certifi
 
 from paho.mqtt import client as mqtt_client
 
@@ -48,19 +49,32 @@ class MQTTHandler:
         """Create connection to MQTT broker"""
         _LOGGER.debug("Create MQTT client")
         self.client = mqtt_client.Client(self.mqtt_config.client_id)
+
         if len(self.mqtt_config.broker_user.strip()) > 0:
-            _LOGGER.debug("Connect with user %s", self.mqtt_config.broker_user)
+            _LOGGER.debug("Connect with user '%s'", self.mqtt_config.broker_user)
             self.client.username_pw_set(
                 self.mqtt_config.broker_user, self.mqtt_config.broker_passwd
             )
         else:
             _LOGGER.debug("Connect anonymously")
 
+        if self.mqtt_config.secured_connection:
+            _LOGGER.debug("Use secured connection")
+            self.client.tls_set(
+                ca_certs=(
+                    self.mqtt_config.cacerts_path
+                    if self.mqtt_config.cacerts_path is not None
+                    else certifi.where()
+                )
+            )
+        else:
+            _LOGGER.debug("Use unsecured connection")
+
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
 
         _LOGGER.info(
-            "Connect to broker %s on port %s",
+            "Connect to broker '%s' on port %s",
             self.mqtt_config.broker_addr,
             self.mqtt_config.broker_port,
         )
