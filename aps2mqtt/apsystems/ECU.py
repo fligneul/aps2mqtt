@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class ECU:
     def __init__(self, ecu_config):
-        self.ecu = APSystemsSocket(ecu_config.ipaddr)
+        self.socket = APSystemsSocket(ecu_config.ipaddr)
         self.cached_data = {}
         self.ipaddr = ecu_config.ipaddr
         self.port = ecu_config.port
@@ -26,22 +26,16 @@ class ECU:
                 ecu_config.ecu_position_latitude, ecu_config.ecu_position_longitude
             )
 
-    def stop_query(self):
-        self.querying = False
-
-    def start_query(self):
-        self.querying = True
-
     def is_night(self):
         return (
             self.stop_at_night
             and (
-                datetime.now(timezone.utc) < self.ecu_location.get_sunrise_time()
-                or datetime.now(timezone.utc) > self.ecu_location.get_sunset_time()
-            )
-            and (
                 len(self.cached_data) > 0
                 and self.cached_data.get("qty_of_online_inverters", 0) == 0
+            )
+            and (
+                datetime.now(timezone.utc) < self.ecu_location.get_sunrise_time()
+                or datetime.now(timezone.utc) > self.ecu_location.get_sunset_time()
             )
         )
 
@@ -52,9 +46,8 @@ class ECU:
             )
         return self.ecu_location.get_sunrise_time()
 
-    def invalid_data(self, msg):
+    def invalid_data(self):
         # we got invalid data, increment retry counter
-        self.error_msg = msg
         self.retry_count += 1
 
         if self.retry_count == self.retry:
@@ -99,22 +92,19 @@ class ECU:
                 "Unable to get correct data from ECU. See log for details, and try power cycling the ECU."
             )
 
-        return {}
-
     def update(self):
         _LOGGER.debug("Start ECU update")
         data = {}
 
-        # if we aren't actively quering data, pull data from the cache
+        # if we aren't actively quering data.
         # this is so we can stop querying after sunset
         if not self.querying:
             _LOGGER.debug("Not querying ECU due to query=False")
-            data["querying"] = self.querying
-            return {}
+            return data
 
         _LOGGER.debug("Querying ECU...")
         try:
-            data = self.ecu.query_ecu()
+            data = self.socket.query_ecu()
             _LOGGER.debug("Got data from ECU")
 
             # we got good results, so we store it and set flags about our
@@ -122,7 +112,6 @@ class ECU:
             if data["ecu_id"] is not None:
                 self.cached_data = data
                 self.ecu_restarting = False
-                self.error_message = ""
             else:
                 msg = "Error: no ecu_id returned"
                 _LOGGER.warning(msg)
@@ -139,11 +128,13 @@ class ECU:
             _LOGGER.warning(msg)
             data = {}
 
+        if data.get("ecu_id", None) is None:
+            self.cached_data = {}
+            self.invalid_data()
+            raise ValueError("Somehow data doesn't contain a valid ecu_id")
+
         data["querying"] = self.querying
         data["restart_ecu"] = self.ecu_restarting
         _LOGGER.debug("Returning %s", data)
-
-        if data.get("ecu_id", None) is None:
-            raise ValueError("Somehow data doesn't contain a valid ecu_id")
 
         return data
