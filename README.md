@@ -101,12 +101,14 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 
 | Key | Description | Example | Default value |
 |---|---|---|---|
-| MQTT_BROKER_HOST | Host of the MQTT broker <br />:warning: For now, secured connection (TLS/SSL) are not possible | "192.168.1.1" or "broker.hivemq.com" | "127.0.0.1" |
+| MQTT_BROKER_HOST | Host of the MQTT broker | "192.168.1.1", "broker.hivemq.com" | "127.0.0.1" |
 | MQTT_BROKER_PORT | Port of the MQTT broker | 1883 | 1883 |
 | MQTT_BROKER_USER | User login of the MQTT broker | "john-doe" | "" |
 | MQTT_BROKER_PASSWD | User password of the MQTT broker | "itsasecret" | "" |
 | MQTT_CLIENT_ID | Client ID if the MQTT client | "MyAwesomeClient" | "APS2MQTT" |
 | MQTT_TOPIC_PREFIX | Topic prefix for publishing | "my-personal-topic" | "" |
+| MQTT_BROKER_SECURED_CONNECTION | Use secure connection to MQTT broker | True | False |
+| MQTT_BROKER_CACERTS_PATH | Path to the cacerts file | "/User/johndoe/.ssl/cacerts" | None |
 
 ### ECU
 
@@ -123,6 +125,8 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 
 ### Example
 
+#### Unsecured connection
+
 ``` yaml
 ecu:
   APS_ECU_IP: '192.168.1.42'
@@ -135,6 +139,22 @@ mqtt:
   MQTT_BROKER_PORT: 1883
   MQTT_BROKER_USER: 'johndoe'
   MQTT_BROKER_PASSWD: 'itsasecret'
+```
+
+#### Secured connection
+
+``` yaml
+ecu:
+  APS_ECU_IP: '192.168.1.42'
+  APS_ECU_STOP_AT_NIGHT: True
+  APS_ECU_POSITION_LAT: 47.206
+  APS_ECU_POSITION_LNG: -1.5645
+
+mqtt:
+  MQTT_BROKER_HOST: 'broker.hivemq.com'
+  MQTT_BROKER_PORT: 8883
+  MQTT_BROKER_SECURED_CONNECTION: True
+
 ```
 
 ## MQTT topics
