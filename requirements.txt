@@ -1,7 +1,6 @@
 requests==2.31.0
 paho.mqtt==1.6.1
 pyyaml==6.0.1
-numpy==1.26.0
 suntime==1.2.5
 build==1.0.3
 setuptools>=65.5.1

@@ -2,9 +2,8 @@
 import logging
 import time
 import atexit
-import numpy
+from statistics import mean
 import certifi
-
 from paho.mqtt import client as mqtt_client
 
 _LOGGER = logging.getLogger(__name__)
@@ -115,8 +114,8 @@ class MQTTHandler:
                 output[topic_inv_base + "/signal"] = str(inverter["signal"])
                 output[topic_inv_base + "/temperature"] = str(inverter["temperature"])
                 output[topic_inv_base + "/frequency"] = str(inverter["frequency"])
-                output[topic_inv_base + "/power"] = str(numpy.sum(inverter["power"]))
-                output[topic_inv_base + "/voltage"] = str(numpy.mean(inverter["voltage"]))
+                output[topic_inv_base + "/power"] = str(sum(inverter["power"]))
+                output[topic_inv_base + "/voltage"] = str(mean(inverter["voltage"]))
 
                 for panel_index, panel_power in enumerate(inverter["power"], start=1):
                     output[topic_inv_base + "/" + str(panel_index) + "/power"] = str(panel_power)
