@@ -48,11 +48,16 @@ class Config:
 
     def __init__(self, config_path=None):
         if config_path is not None:
-            with open(config_path, "r", encoding="UTF-8") as yml_cfg:
-                cfg = yaml.safe_load(yml_cfg)
-                self.mqtt_config = MQTTConfig(cfg["mqtt"])
-                self.ecu_config = ECUConfig(cfg["ecu"])
+            self.__load_yaml_config_file(config_path)
+        elif os.getenv("CONFIG_FILE") is not None:
+            self.__load_yaml_config_file(os.getenv("CONFIG_FILE"))
         else:
             cfg = os.environ
             self.mqtt_config = MQTTConfig(cfg)
             self.ecu_config = ECUConfig(cfg)
+
+    def __load_yaml_config_file(self, config_path):
+        with open(config_path, "r", encoding="UTF-8") as yml_cfg:
+            cfg = yaml.safe_load(yml_cfg)
+            self.mqtt_config = MQTTConfig(cfg["mqtt"])
+            self.ecu_config = ECUConfig(cfg["ecu"])
