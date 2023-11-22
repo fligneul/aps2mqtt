@@ -109,7 +109,7 @@ class MQTTHandler:
 
         for inverter in data["inverters"]:
             topic_inv_base = topic_base + "/" + str(inverter["uid"])
-            output[topic_inv_base + "/online"] = inverter["online"]
+            output[topic_inv_base + "/online"] = str(inverter["online"])
             if inverter["online"]:
                 output[topic_inv_base + "/signal"] = str(inverter["signal"])
                 output[topic_inv_base + "/temperature"] = str(inverter["temperature"])
