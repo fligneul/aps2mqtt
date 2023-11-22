@@ -1,5 +1,6 @@
 """Query APS ECU data periodically and send them to the MQTT broker"""
 import logging
+import os
 import time
 
 from argparse import ArgumentParser
@@ -31,7 +32,7 @@ def main():
     args = cli_args()
     conf = Config(args.config_path)
 
-    if args.debug_level:
+    if args.debug_level or os.getenv("DEBUG") == "True":
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
