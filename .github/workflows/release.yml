@@ -11,20 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: release
 
-    permissions:
-      checks: read
-      contents: write
-      deployments: write
+    permissions: write-all
 
     steps:
-    - name: ⏰ Wait for build to succeed
+    - name: ⏰ Wait for builds to succeed
       uses: lewagon/wait-on-check-action@v1.3.1
       with:
         ref: ${{ github.ref }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         wait-interval: 10
         running-workflow-name: wait-for-check-regexp
-        check-regexp: build-\(.*\)
+        check-regexp: build-.*
 
     - name: 🛒 Checkout repository
       uses: actions/checkout@v4
@@ -34,7 +31,7 @@ jobs:
     - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.9'
         architecture: 'x64'
 
     - name: 👷🏻 Install dependencies
@@ -100,6 +97,6 @@ jobs:
     - name: 🔖 Publish Release
       if: ${{ env.release-needed == 'true' }}
       env:
-        GITHUB_TOKEN: ${{ secrets.SEMANTIC_PAT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: python -m semantic_release publish
     
