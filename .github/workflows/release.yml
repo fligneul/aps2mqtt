@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: release
 
-    permissions: write-all
+    permissions:
+      checks: read
+      statuses: read
 
     steps:
     - name: ⏰ Wait for builds to succeed
@@ -27,6 +29,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        token: ${{ secrets.SEMANTIC_PAT_TOKEN }}
 
     - name: 🐍 Set up Python
       uses: actions/setup-python@v4
@@ -57,7 +60,7 @@ jobs:
     - name: 🖋️ Set release version
       if: ${{ env.release-needed == 'true' }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SEMANTIC_PAT_TOKEN }}
       run: python -m semantic_release version
 
     - name: 🛠️ Build dist
@@ -97,6 +100,6 @@ jobs:
     - name: 🔖 Publish Release
       if: ${{ env.release-needed == 'true' }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SEMANTIC_PAT_TOKEN }}
       run: python -m semantic_release publish
     
