@@ -65,7 +65,7 @@ class ECU:
                     "psk_wep": "",
                     "psk_wpa": self.wifi_config.passwd,
                 }
-                _LOGGER.debug("Data sent with URL: %s", data)
+                _LOGGER.debug("Data sent with URL: %s", data["SSID"])
                 url = "http://" + str(self.ipaddr) + "/index.php/management/set_wlan_ap"
                 headers = {"X-Requested-With": "XMLHttpRequest"}
                 try:
