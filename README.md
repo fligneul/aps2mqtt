@@ -157,6 +157,26 @@ mqtt:
 
 ```
 
+#### Using Docker Compose
+
+``` yaml
+services:
+  aps2mqtt:
+    image: fligneul/aps2mqtt:latest
+    restart: always
+    environment:
+      - APS_ECU_IP=192.168.1.42
+      - APS_ECU_STOP_AT_NIGHT=True
+      - APS_ECU_POSITION_LAT=47.206
+      - APS_ECU_POSITION_LNG=-1.5645
+      - MQTT_BROKER_HOST=broker.hivemq.com
+      - MQTT_BROKER_PORT=8883
+      - MQTT_BROKER_USER=johndoe
+      - MQTT_BROKER_PASSWD=itsasecret
+      - MQTT_BROKER_SECURED_CONNECTION=True
+      - DEBUG=true
+```
+
 ## MQTT topics
 
 The aps2mqtt retrieve from the whole PV array as a whole as well as each individual inverter in detail.
