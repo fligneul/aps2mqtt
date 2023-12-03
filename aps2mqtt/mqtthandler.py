@@ -59,6 +59,9 @@ class MQTTHandler:
 
         if self.mqtt_config.secured_connection:
             _LOGGER.debug("Use secured connection")
+            if self.mqtt_config.cacerts_path is None:
+                _LOGGER.warning("No ca_certs defined, using default one")
+
             self.client.tls_set(
                 ca_certs=(
                     self.mqtt_config.cacerts_path
