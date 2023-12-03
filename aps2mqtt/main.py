@@ -5,6 +5,7 @@ import time
 
 from argparse import ArgumentParser
 from datetime import datetime, timedelta, timezone
+from str2bool import str2bool_exc
 from aps2mqtt.mqtthandler import MQTTHandler
 from aps2mqtt.config import Config
 from aps2mqtt.apsystems.ECU import ECU
@@ -32,7 +33,7 @@ def main():
     args = cli_args()
     conf = Config(args.config_path)
 
-    if args.debug_level or os.getenv("DEBUG") == "True":
+    if args.debug_level or str2bool_exc(os.getenv("DEBUG", "False")):
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)

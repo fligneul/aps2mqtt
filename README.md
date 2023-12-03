@@ -174,7 +174,7 @@ services:
       - MQTT_BROKER_USER=johndoe
       - MQTT_BROKER_PASSWD=itsasecret
       - MQTT_BROKER_SECURED_CONNECTION=True
-      - DEBUG=true
+      - DEBUG=True
 ```
 
 ## MQTT topics
