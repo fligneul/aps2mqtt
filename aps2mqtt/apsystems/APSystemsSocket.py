@@ -77,7 +77,7 @@ class APSystemsSocket:
             return self.read_buffer
         except Exception as err:
             self.close_socket()
-            raise APSystemsInvalidData(err)
+            raise APSystemsInvalidData(err) from err
 
     def close_socket(self):
         try:
@@ -90,7 +90,7 @@ class APSystemsSocket:
                 self.sock.close()
                 self.socket_open = False
         except Exception as err:
-            raise APSystemsInvalidData(err)
+            raise APSystemsInvalidData(err) from err
 
     def open_socket(self):
         self.socket_open = False
@@ -100,7 +100,7 @@ class APSystemsSocket:
             self.sock.connect((self.ipaddr, self.port))
             self.socket_open = True
         except Exception as err:
-            raise APSystemsInvalidData(err)
+            raise APSystemsInvalidData(err) from err
 
     def query_ecu(self):
         self.open_socket()
@@ -117,7 +117,7 @@ class APSystemsSocket:
                 self.add_error(error)
                 raise APSystemsInvalidData(error)
         except Exception as err:
-            raise APSystemsInvalidData(err)
+            raise APSystemsInvalidData(err) from err
 
         # Some ECUs likes the socket to be closed and re-opened between commands
         self.open_socket()
@@ -148,7 +148,7 @@ class APSystemsSocket:
             debugdata = binascii.b2a_hex(codec)
             error = f"Unable to convert binary to int location={start} data={debugdata}"
             self.add_error(error)
-            raise APSystemsInvalidData(error)
+            raise APSystemsInvalidData(error) from err
 
     def aps_short(self, codec, start):
         try:
@@ -157,7 +157,7 @@ class APSystemsSocket:
             debugdata = binascii.b2a_hex(codec)
             error = f"Unable to convert binary to short int location={start} data={debugdata}"
             self.add_error(error)
-            raise APSystemsInvalidData(error)
+            raise APSystemsInvalidData(error) from err
 
     def aps_double(self, codec, start):
         try:
@@ -166,7 +166,7 @@ class APSystemsSocket:
             debugdata = binascii.b2a_hex(codec)
             error = f"Unable to convert binary to double location={start} data={debugdata}"
             self.add_error(error)
-            raise APSystemsInvalidData(error)
+            raise APSystemsInvalidData(error) from err
 
     def aps_bool(self, codec, start):
         return bool(binascii.b2a_hex(codec[(start) : (start + 2)]))
@@ -201,7 +201,7 @@ class APSystemsSocket:
             debugdata = binascii.b2a_hex(data)
             error = f"could not extract checksum int from '{cmd}' data={debugdata}"
             self.add_error(error)
-            raise APSystemsInvalidData(error)
+            raise APSystemsInvalidData(error) from err
 
         if datalen != checksum:
             debugdata = binascii.b2a_hex(data)
@@ -299,7 +299,7 @@ class APSystemsSocket:
                         inv["online"] = bool(self.aps_short(data, cnt2 + 6))
                         istr = self.aps_str(data, cnt2 + 7, 2)
                         inv["signal"] = signal.get(inverter_uid, 0)
-                        if istr in [ '01', '04', '05']:
+                        if istr in ["01", "04", "05"]:
                             power = []
                             voltages = []
                             inv["frequency"] = self.aps_int(data, cnt2 + 9) / 10
