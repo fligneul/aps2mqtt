@@ -87,7 +87,7 @@ class ECU:
                 )
                 self.querying = False
 
-        if self.cached_data["ecu_id"] is None:
+        if self.cached_data.get("ecu_id", None) is None:
             raise ValueError(
                 "Unable to get correct data from ECU. See log for details, and try power cycling the ECU."
             )
