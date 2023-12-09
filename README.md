@@ -116,12 +116,21 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 |---|---|---|---|
 | APS_ECU_IP | IP of the ECU | "192.168.1.42" | None, this field id mandatory |
 | APS_ECU_PORT | Communication port of the ECU | 8899 | 8899 |
+| APS_ECU_TIMEZONE | Timezone of the ECU | 'Europe/Paris' | None (use system timezone) |
 | APS_ECU_AUTO_RESTART | Automatically restart ECU in case of error | True | False |
 | APS_ECU_WIFI_SSID | SSID of the ECU Wifi <br />:information_source: Only used if automatic restart is enabled | "My Wifi" | "" |
 | APS_ECU_WIFI_PASSWD | Password of the ECU Wifi <br />:information_source: Only used if automatic restart is enabled | "secret-key" | "" |
 | APS_ECU_STOP_AT_NIGHT | Stop ECU query during the night | True | False |
 | APS_ECU_POSITION_LAT | Latitude of the ECU, used to retrieve sunset and sunrise <br />:information_source: Only used if stop at night is enabled | 51.49819 | 48.864716 (Paris) |
 | APS_ECU_POSITION_LNG | Longitude of the ECU, used to retrieve sunset and sunrise <br />:information_source: Only used if stop at night is enabled | -0.13087 | 2.349014 (Paris) |
+
+### Timezone
+
+Without any specific configuration, aps2mqtt use your system's timezone as a reference.
+
+* If you use aps2mqtt as a python application, setting the ECU timezone is recommended by setting the configuration variable 'APS_ECU_TIMEZONE' for better processing.  
+
+* If you are using aps2mqtt as a Docker image, you can configure the timezone for the whole container using the environement variable 'TZ'
 
 ### Example
 
@@ -130,6 +139,7 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 ``` yaml
 ecu:
   APS_ECU_IP: '192.168.1.42'
+  APS_ECU_TIMEZONE: 'Europe/Paris'
   APS_ECU_STOP_AT_NIGHT: True
   APS_ECU_POSITION_LAT: 47.206
   APS_ECU_POSITION_LNG: -1.5645
@@ -146,6 +156,7 @@ mqtt:
 ``` yaml
 ecu:
   APS_ECU_IP: '192.168.1.42'
+  APS_ECU_TIMEZONE: 'Europe/Paris'
   APS_ECU_STOP_AT_NIGHT: True
   APS_ECU_POSITION_LAT: 47.206
   APS_ECU_POSITION_LNG: -1.5645
@@ -165,6 +176,8 @@ services:
     image: fligneul/aps2mqtt:latest
     restart: always
     environment:
+      - TZ=Europe/Paris
+      - DEBUG=True
       - APS_ECU_IP=192.168.1.42
       - APS_ECU_STOP_AT_NIGHT=True
       - APS_ECU_POSITION_LAT=47.206
@@ -174,7 +187,6 @@ services:
       - MQTT_BROKER_USER=johndoe
       - MQTT_BROKER_PASSWD=itsasecret
       - MQTT_BROKER_SECURED_CONNECTION=True
-      - DEBUG=True
 ```
 
 ## MQTT topics
