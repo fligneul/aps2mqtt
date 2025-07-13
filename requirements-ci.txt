@@ -1,4 +1,0 @@
-build==1.0.3
-setuptools>=65.5.1
-twine==4.0.2
-python-semantic-release==8.3.0
