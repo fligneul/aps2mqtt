@@ -24,9 +24,10 @@ class MQTTHandler:
         )
         self.client = None
 
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
     def on_connect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker connection"""
-        del client, userdata, flags
+        del client, userdata, flags, properties
         if reason_code == 0:
             _LOGGER.info("Connected to MQTT Broker!")
         else:
@@ -34,6 +35,7 @@ class MQTTHandler:
                 "Failed to connect: %s", mqtt_client.connack_string(reason_code)
             )
 
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
     def on_disconnect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker disconnection"""
         del client, userdata, flags, properties
