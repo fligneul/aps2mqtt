@@ -58,7 +58,7 @@ jobs:
 
       - name: 🕵🏻 Analyse code with pylint
         run: |
-          poetry run pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || poetry run pylint-exit $?"
+          poetry run pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || poetry run pylint-exit $?
 
   build-docker-image:
     runs-on: ubuntu-latest
