@@ -1,4 +1,5 @@
 """Handle MQTT connection and data publishing"""
+
 import logging
 import time
 import atexit
@@ -17,22 +18,28 @@ class MQTTHandler:
     def __init__(self, mqtt_config):
         self.mqtt_config = mqtt_config
         self.topic_prefix = (
-            mqtt_config.topic_prefix + "/" if len(mqtt_config.topic_prefix.strip()) > 0 else ""
+            mqtt_config.topic_prefix + "/"
+            if len(mqtt_config.topic_prefix.strip()) > 0
+            else ""
         )
         self.client = None
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker connection"""
         del client, userdata, flags
-        if rc == 0:
+        if reason_code == 0:
             _LOGGER.info("Connected to MQTT Broker!")
         else:
-            _LOGGER.error("Failed to connect: %s", mqtt_client.connack_string(rc))
+            _LOGGER.error(
+                "Failed to connect: %s", mqtt_client.connack_string(reason_code)
+            )
 
-    def on_disconnect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker disconnection"""
-        del client, userdata
-        _LOGGER.info("Disconnected from MQTT Broker: %s", mqtt_client.error_string(rc))
+        del client, userdata, flags, properties
+        _LOGGER.info(
+            "Disconnected from MQTT Broker: %s", mqtt_client.error_string(reason_code)
+        )
 
     def _publish(self, client, topic, msg):
         result = client.publish(topic, msg)
@@ -41,13 +48,17 @@ class MQTTHandler:
             _LOGGER.debug("Send `%s` to topic `%s`", msg, topic)
         else:
             _LOGGER.error(
-                "Failed to send message to topic %s: %s", topic, mqtt_client.error_string(status)
+                "Failed to send message to topic %s: %s",
+                topic,
+                mqtt_client.error_string(status),
             )
 
     def connect_mqtt(self):
         """Create connection to MQTT broker"""
         _LOGGER.debug("Create MQTT client")
-        self.client = mqtt_client.Client(self.mqtt_config.client_id)
+        self.client = mqtt_client.Client(
+            mqtt_client.CallbackAPIVersion.VERSION2, self.mqtt_config.client_id
+        )
 
         if len(self.mqtt_config.broker_user.strip()) > 0:
             _LOGGER.debug("Connect with user '%s'", self.mqtt_config.broker_user)
@@ -80,7 +91,9 @@ class MQTTHandler:
             self.mqtt_config.broker_addr,
             self.mqtt_config.broker_port,
         )
-        self.client.connect_async(self.mqtt_config.broker_addr, self.mqtt_config.broker_port)
+        self.client.connect_async(
+            self.mqtt_config.broker_addr, self.mqtt_config.broker_port
+        )
         self.client.loop_start()
         atexit.register(self.client.loop_stop)
 
@@ -121,9 +134,13 @@ class MQTTHandler:
                 output[topic_inv_base + "/voltage"] = str(mean(inverter["voltage"]))
 
                 for panel_index, panel_power in enumerate(inverter["power"], start=1):
-                    output[topic_inv_base + "/" + str(panel_index) + "/power"] = str(panel_power)
+                    output[topic_inv_base + "/" + str(panel_index) + "/power"] = str(
+                        panel_power
+                    )
 
-                for panel_index, panel_voltage in enumerate(inverter["voltage"], start=1):
+                for panel_index, panel_voltage in enumerate(
+                    inverter["voltage"], start=1
+                ):
                     output[topic_inv_base + "/" + str(panel_index) + "/voltage"] = str(
                         panel_voltage
                     )

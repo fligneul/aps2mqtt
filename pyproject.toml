@@ -20,7 +20,7 @@ packages = [{include = "aps2mqtt"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.32.4"
-paho-mqtt = "^1.6.1"
+paho-mqtt = "^2.1.0"
 pyyaml = "^6.0.2"
 str2bool = "^1.1"
 suntime = "^1.2.5"
