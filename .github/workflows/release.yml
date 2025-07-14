@@ -69,7 +69,7 @@ jobs:
 
     - name: 🚀 Upload to PyPI
       if: ${{ env.release-needed == 'true' }}
-      run: python -m twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} dist/*
+      run: python -m twine upload -u __token__ -p ${{ secrets.PYPI_TOKEN }} dist/*
 
     - name: 👾 Set up QEMU
       if: ${{ env.release-needed == 'true' }}
