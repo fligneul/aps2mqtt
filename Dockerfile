@@ -10,10 +10,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock ./
 
 # Install project dependencies and pyinstaller using poetry
-RUN poetry install --no-root --no-dev
-
-# Install pyinstaller globally if it's not a project dependency
-RUN pip install pyinstaller --no-warn-script-location
+RUN poetry install --no-root
 
 COPY aps2mqtt/ /app/aps2mqtt
 WORKDIR /app

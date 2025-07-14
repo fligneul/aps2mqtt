@@ -18,7 +18,7 @@ readme = "README.md"
 packages = [{include = "aps2mqtt"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.14"
 requests = "^2.32.4"
 paho-mqtt = "^2.1.0"
 pyyaml = "^6.0.2"
@@ -32,6 +32,7 @@ pytest = "^8.4.1"
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.3.7"
 pylint-exit = "^1.2.0"
+pyinstaller = "^6.14.2"
 
 [build-system]
 requires = ["poetry-core"]
