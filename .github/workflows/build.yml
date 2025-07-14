@@ -40,19 +40,16 @@ jobs:
 
   build-pylint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.11", "3.x"]
     steps:
       - name: 🛒 Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🐍 Set up Python ${{ matrix.python-version }}
+      - name: 🐍 Set up last Python version
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.x
 
       - name: 👷🏻 Install dependencies
         run: |
@@ -61,4 +58,20 @@ jobs:
 
       - name: 🕵🏻 Analyse code with pylint
         run: |
-          poetry run pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || poetry run pylint-exit $?
+          poetry run pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || poetry run pylint-exit $?"
+
+  build-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: aps2mqtt:${{ github.sha }}
