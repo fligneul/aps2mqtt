@@ -59,3 +59,24 @@ jobs:
       - name: 🕵🏻 Analyse code with pylint
         run: |
           pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || pylint-exit $?
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ vars.DOCKER_BUILD_PLATFORMS }}
+
+      - name: 🏗️ Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ vars.DOCKER_BUILD_PLATFORMS }}
+          push: false
+          tags: aps2mqtt:${{ github.sha }}
