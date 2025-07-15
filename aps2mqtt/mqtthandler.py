@@ -21,12 +21,14 @@ class MQTTHandler:
             mqtt_config.topic_prefix + "/" if len(mqtt_config.topic_prefix.strip()) > 0 else ""
         )
         self.client = None
+        self.status_topic = self.topic_prefix + "aps/status"
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker connection"""
-        del client, userdata, flags, properties
+        del userdata, flags, properties
         if reason_code == 0:
             _LOGGER.info("Connected to MQTT Broker!")
+            self._publish(client, self.status_topic, "online", retain=True)
         else:
             _LOGGER.error("Failed to connect: %s", reason_code)
 
@@ -35,10 +37,13 @@ class MQTTHandler:
         del client, userdata, flags, properties
         _LOGGER.info("Disconnected from MQTT Broker: %s", reason_code)
 
-    def _publish(self, client, topic, msg):
-        result = client.publish(topic, msg)
+    def _publish(self, client, topic, msg, retain=False):
+        # If mqtt_retain is True in config, all messages are retained.
+        # Otherwise, only LWT uses retain.
+        actual_retain = retain or self.mqtt_config.retain
+        result = client.publish(topic, msg, retain=actual_retain)
         if result.rc == 0:
-            _LOGGER.debug("Send `%s` to topic `%s`", msg, topic)
+            _LOGGER.debug("Send `%s` to topic `%s` (retain=%s)", msg, topic, actual_retain)
         else:
             _LOGGER.error("Failed to send message to topic %s: %s", topic, result.rc)
 
@@ -72,6 +77,9 @@ class MQTTHandler:
         else:
             _LOGGER.debug("Use unsecured connection")
 
+        _LOGGER.debug("Set LWT on topic '%s'", self.status_topic)
+        self.client.will_set(self.status_topic, "offline", qos=1, retain=True)
+
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
 
@@ -82,7 +90,13 @@ class MQTTHandler:
         )
         self.client.connect_async(self.mqtt_config.broker_addr, self.mqtt_config.broker_port)
         self.client.loop_start()
-        atexit.register(self.client.loop_stop)
+        atexit.register(self.disconnect)
+
+    def disconnect(self):
+        if self.client.is_connected():
+            _LOGGER.info("Publishing 'offline' status on graceful exit.")
+            self._publish(self.client, self.status_topic, "offline", retain=True)
+        self.client.loop_stop()
 
     def publish_values(self, data):
         """Publish ECU data to MQTT"""
