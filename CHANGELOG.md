@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## v1.3.0 (2025-07-15)
+
+### Chores
+
+- **deps**: Bump requests from 2.32.0 to 2.32.4 (#21) ([#21](https://github.com/fligneul/aps2mqtt/pull/21), [`d98758d`](https://github.com/fligneul/aps2mqtt/commit/d98758d92a9d88f409bee3684f6494284ae74a32))
+
+- **deps**: Upgrade dependencies ([`6fbcf4a`](https://github.com/fligneul/aps2mqtt/commit/6fbcf4a6b6f7050352cc767152b9da6041a28669))
+
+### Continuous Integration
+
+- Build the docker image during run ([`8dc146f`](https://github.com/fligneul/aps2mqtt/commit/8dc146f7017ac30ced8c8adf9fb5fd05994b8ef9))
+
+- Update deprecated action ([`9d6f4a8`](https://github.com/fligneul/aps2mqtt/commit/9d6f4a8e1870c58208fb57a5791e1cb2080b515e))
+
+### Features
+
+- Add MQTT message retention and client status topic (#22) ([#22](https://github.com/fligneul/aps2mqtt/pull/22), [`2943c8d`](https://github.com/fligneul/aps2mqtt/commit/2943c8d9560bab2cd683cb31f5c3c4e422f0836e))
 
 
 ## v1.2.0 (2023-12-09)
