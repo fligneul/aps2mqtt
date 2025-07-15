@@ -1,8 +1,8 @@
-[![Maintenance badge](https://img.shields.io/maintenance/yes/2023)](https://github.com/fligneul/aps2mqtt)
+[![Maintenance badge](https://img.shields.io/maintenance/yes/2025)](https://github.com/fligneul/aps2mqtt)
 [![Release badge](https://img.shields.io/github/v/release/fligneul/aps2mqtt)](https://github.com/fligneul/aps2mqtt/releases)
 [![PyPI version](https://badge.fury.io/py/aps2mqtt.svg)](https://badge.fury.io/py/aps2mqtt)
-![Docker Hub Badge](https://img.shields.io/badge/Docker_Hub-fligneul%2Faps2mqtt-blue?logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Ffligneul%2Faps2mqtt)
-[![Semantic release angular](https://img.shields.io/badge/python_semantic_release-angular-e10079?logo=semantic-release
+[![Docker Hub Badge](https://img.shields.io/badge/Docker_Hub-fligneul%2Faps2mqtt-blue?logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Ffligneul%2Faps2mqtt)](https://hub.docker.com/r/fligneul/aps2mqtt)
+[![Semantic release conventional](https://img.shields.io/badge/python_semantic_release-conventional-e10079?logo=semantic-release
 )](https://github.com/python-semantic-release/python-semantic-release)
 
 # APS2MQTT
