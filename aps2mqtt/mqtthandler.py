@@ -1,4 +1,5 @@
 """Handle MQTT connection and data publishing"""
+
 import logging
 import time
 import atexit
@@ -21,33 +22,32 @@ class MQTTHandler:
         )
         self.client = None
 
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker connection"""
-        del client, userdata, flags
-        if rc == 0:
+        del client, userdata, flags, properties
+        if reason_code == 0:
             _LOGGER.info("Connected to MQTT Broker!")
         else:
-            _LOGGER.error("Failed to connect: %s", mqtt_client.connack_string(rc))
+            _LOGGER.error("Failed to connect: %s", reason_code)
 
-    def on_disconnect(self, client, userdata, rc):
+    def on_disconnect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker disconnection"""
-        del client, userdata
-        _LOGGER.info("Disconnected from MQTT Broker: %s", mqtt_client.error_string(rc))
+        del client, userdata, flags, properties
+        _LOGGER.info("Disconnected from MQTT Broker: %s", reason_code)
 
     def _publish(self, client, topic, msg):
         result = client.publish(topic, msg)
-        status = result[0]
-        if status == 0:
+        if result.rc == 0:
             _LOGGER.debug("Send `%s` to topic `%s`", msg, topic)
         else:
-            _LOGGER.error(
-                "Failed to send message to topic %s: %s", topic, mqtt_client.error_string(status)
-            )
+            _LOGGER.error("Failed to send message to topic %s: %s", topic, result.rc)
 
     def connect_mqtt(self):
         """Create connection to MQTT broker"""
         _LOGGER.debug("Create MQTT client")
-        self.client = mqtt_client.Client(self.mqtt_config.client_id)
+        self.client = mqtt_client.Client(
+            mqtt_client.CallbackAPIVersion.VERSION2, self.mqtt_config.client_id
+        )
 
         if len(self.mqtt_config.broker_user.strip()) > 0:
             _LOGGER.debug("Connect with user '%s'", self.mqtt_config.broker_user)
@@ -89,7 +89,7 @@ class MQTTHandler:
         _LOGGER.debug("Start MQTT publish")
 
         retry_count = 0
-        while not self.client.is_connected() and retry_count < _MAX_RETRY:
+        while (self.client is None or not self.client.is_connected()) and retry_count < _MAX_RETRY:
             _LOGGER.info("MQTT client not connected...")
             retry_count += 1
             time.sleep(5)

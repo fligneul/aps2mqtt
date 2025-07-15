@@ -9,7 +9,7 @@ COPY aps2mqtt/ /app/aps2mqtt
 WORKDIR /app
 RUN /root/.local/bin/pyinstaller --collect-all tzdata --onefile /app/aps2mqtt/__main__.py -n aps2mqtt
 
-FROM ubuntu:jammy AS runner
+FROM ubuntu:noble AS runner
 RUN apt update && apt install tzdata -y && apt clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/dist/aps2mqtt /app/

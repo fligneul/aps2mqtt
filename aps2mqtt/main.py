@@ -1,4 +1,5 @@
 """Query APS ECU data periodically and send them to the MQTT broker"""
+
 import logging
 import os
 import time
@@ -53,7 +54,7 @@ def main():
             else:
                 try:
                     data = ecu.update()
-                    if len(data) == 0:
+                    if data is None or len(data) == 0:
                         raise ValueError("Retrieved data are empty")
                     update_time = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S").replace(
                         tzinfo=conf.ecu_config.timezone
