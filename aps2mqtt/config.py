@@ -15,6 +15,7 @@ class MQTTConfig:
         self.broker_passwd = cfg.get("MQTT_BROKER_PASSWD", "")
         self.client_id = cfg.get("MQTT_CLIENT_ID", "APS2MQTT")
         self.topic_prefix = cfg.get("MQTT_TOPIC_PREFIX", "")
+        self.retain = str2bool_exc(str(cfg.get("MQTT_RETAIN", False)))
         self.secured_connection = str2bool_exc(
             str(cfg.get("MQTT_BROKER_SECURED_CONNECTION", False))
         )

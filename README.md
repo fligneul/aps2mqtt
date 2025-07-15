@@ -108,6 +108,7 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 | MQTT_BROKER_PASSWD | User password of the MQTT broker | "itsasecret" | "" |
 | MQTT_CLIENT_ID | Client ID if the MQTT client | "MyAwesomeClient" | "APS2MQTT" |
 | MQTT_TOPIC_PREFIX | Topic prefix for publishing | "my-personal-topic" | "" |
+| MQTT_RETAIN | Retain MQTT messages | True | False |
 | MQTT_BROKER_SECURED_CONNECTION | Use secure connection to MQTT broker | True | False |
 | MQTT_BROKER_CACERTS_PATH | Path to the cacerts file | "/User/johndoe/.ssl/cacerts" | None |
 
@@ -150,6 +151,7 @@ mqtt:
   MQTT_BROKER_PORT: 1883
   MQTT_BROKER_USER: 'johndoe'
   MQTT_BROKER_PASSWD: 'itsasecret'
+  MQTT_RETAIN: True
 ```
 
 #### Secured connection
@@ -193,6 +195,8 @@ services:
 ## MQTT topics
 
 The aps2mqtt retrieve from the whole PV array as a whole as well as each individual inverter in detail.
+
+* aps/status - current status of the service, `online` or `offline`. The `offline` message is sent using LWT
 
 ### ECU data
 
