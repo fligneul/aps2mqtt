@@ -3,6 +3,7 @@
 import logging
 import time
 import atexit
+import json
 from statistics import mean
 import certifi
 from paho.mqtt import client as mqtt_client
@@ -20,8 +21,11 @@ class MQTTHandler:
         self.topic_prefix = (
             mqtt_config.topic_prefix + "/" if len(mqtt_config.topic_prefix.strip()) > 0 else ""
         )
+        if self.mqtt_config.discovery_enabled:
+            self.discovery_topic = self.mqtt_config.discovery.prefix + "/"
         self.client = None
         self.status_topic = self.topic_prefix + "aps/status"
+        self.discovery_messages_sent = False
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
         """Callback function on broker connection"""
@@ -98,6 +102,211 @@ class MQTTHandler:
             self._publish(self.client, self.status_topic, "offline", retain=True)
         self.client.loop_stop()
 
+    def publish_discovery_messages(self, data):
+        """Publish discovery messages for all sensors"""
+        if not self.mqtt_config.discovery_enabled or self.discovery_messages_sent:
+            return
+
+        ecu_id = data["ecu_id"]
+        topic_base = self.topic_prefix + "aps/" + str(ecu_id)
+        ecu_device = self._get_device_payload(ecu_id, "ECU")
+
+        # ECU sensors
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "power",
+            ecu_device,
+            topic_base,
+            "current_power",
+            "ECU Power",
+            "power",
+            "W",
+            "mdi:solar-power",
+        )
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "today_energy",
+            ecu_device,
+            topic_base,
+            "today_energy",
+            "ECU Today Energy",
+            "energy",
+            "kWh",
+            "mdi:solar-power",
+        )
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "lifetime_energy",
+            ecu_device,
+            topic_base,
+            "lifetime_energy",
+            "ECU Lifetime Energy",
+            "energy",
+            "kWh",
+            "mdi:solar-power",
+        )
+
+        # Inverter sensors
+        for inverter in data["inverters"]:
+            inv_uid = inverter["uid"]
+            inv_topic_base = topic_base + "/" + str(inv_uid)
+            inv_device = self._get_device_payload(inv_uid, "Inverter", via_device=ecu_id)
+
+            self._publish_discovery_payload(
+                "binary_sensor",
+                inv_uid,
+                "online",
+                inv_device,
+                inv_topic_base,
+                "online",
+                "Inverter Online",
+                None,
+                None,
+                "mdi:power-plug",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "signal",
+                inv_device,
+                inv_topic_base,
+                "signal",
+                "Inverter Signal",
+                "signal_strength",
+                "dBm",
+                "mdi:wifi",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "temperature",
+                inv_device,
+                inv_topic_base,
+                "temperature",
+                "Inverter Temperature",
+                "temperature",
+                "°C",
+                "mdi:thermometer",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "frequency",
+                inv_device,
+                inv_topic_base,
+                "frequency",
+                "Inverter Frequency",
+                "frequency",
+                "Hz",
+                "mdi:sine-wave",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "power",
+                inv_device,
+                inv_topic_base,
+                "power",
+                "Inverter Power",
+                "power",
+                "W",
+                "mdi:solar-power",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "voltage",
+                inv_device,
+                inv_topic_base,
+                "voltage",
+                "Inverter Voltage",
+                "voltage",
+                "V",
+                "mdi:lightning-bolt",
+            )
+
+            # Panel sensors
+            for i, panel_power in enumerate(inverter.get("power", [])):
+                panel_num = i + 1
+                self._publish_discovery_payload(
+                    "sensor",
+                    inv_uid,
+                    f"panel_{panel_num}_power",
+                    inv_device,
+                    inv_topic_base + f"/{panel_num}",
+                    "power",
+                    f"Panel {panel_num} Power",
+                    "power",
+                    "W",
+                    "mdi:solar-panel",
+                )
+
+            for i, panel_voltage in enumerate(inverter.get("voltage", [])):
+                panel_num = i + 1
+                self._publish_discovery_payload(
+                    "sensor",
+                    inv_uid,
+                    f"panel_{panel_num}_voltage",
+                    inv_device,
+                    inv_topic_base + f"/{panel_num}",
+                    "voltage",
+                    f"Panel {panel_num} Voltage",
+                    "voltage",
+                    "V",
+                    "mdi:lightning-bolt",
+                )
+
+        self.discovery_messages_sent = True
+
+    def _get_device_payload(self, device_id, device_name, via_device=None):
+        payload = {
+            "identifiers": [str(device_id)],
+            "name": f"APS {device_name} {device_id}",
+            "manufacturer": "APsystems",
+        }
+        if via_device:
+            payload["via_device"] = str(via_device)
+        return payload
+
+    def _publish_discovery_payload(
+        self,
+        component,
+        device_id,
+        object_id,
+        device_payload,
+        state_topic_base,
+        value_key,
+        name,
+        device_class,
+        unit,
+        icon,
+    ):
+        discovery_topic = f"{self.discovery_topic}{component}/aps_{device_id}_{object_id}/config"
+        payload = {
+            "name": name,
+            "unique_id": f"aps_{device_id}_{object_id}",
+            "state_topic": state_topic_base,
+            "value_template": f"{{{{ value_json.{value_key} }}}}",
+            "device": device_payload,
+            "availability_topic": self.status_topic,
+            "payload_available": "online",
+            "payload_not_available": "offline",
+        }
+        if component == "binary_sensor":
+            payload["payload_on"] = "true"
+            payload["payload_off"] = "false"
+        if device_class:
+            payload["device_class"] = device_class
+        if unit:
+            payload["unit_of_measurement"] = unit
+        if icon:
+            payload["icon"] = icon
+
+        self._publish(self.client, discovery_topic, json.dumps(payload), retain=True)
+
     def publish_values(self, data):
         """Publish ECU data to MQTT"""
         _LOGGER.debug("Start MQTT publish")
@@ -112,6 +321,8 @@ class MQTTHandler:
             _LOGGER.warning("MQTT values not published")
             raise ConnectionError("Can't connect to broker")
 
+        self.publish_discovery_messages(data)
+
         for topic, value in self._parse_data(data).items():
             self._publish(self.client, topic, value)
         _LOGGER.debug("MQTT values published")
@@ -119,27 +330,33 @@ class MQTTHandler:
     def _parse_data(self, data):
         output = {}
         ecu_id = data["ecu_id"]
-        topic_base = self.topic_prefix + "aps/" + str(ecu_id)
-        output[topic_base + "/power"] = str(data["current_power"])
-        output[topic_base + "/energy/today"] = str(data["today_energy"])
-        output[topic_base + "/energy/lifetime"] = str(data["lifetime_energy"])
+        ecu_topic_base = self.topic_prefix + "aps/" + str(ecu_id)
+        ecu_payload = {
+            "current_power": data["current_power"],
+            "today_energy": data["today_energy"],
+            "lifetime_energy": data["lifetime_energy"],
+        }
+        output[ecu_topic_base] = json.dumps(ecu_payload)
 
         for inverter in data["inverters"]:
-            topic_inv_base = topic_base + "/" + str(inverter["uid"])
-            output[topic_inv_base + "/online"] = str(inverter["online"])
+            inverter_uid = str(inverter["uid"])
+            inverter_topic_base = ecu_topic_base + "/" + inverter_uid
+            inverter_payload = {
+                "online": inverter["online"],
+            }
             if inverter["online"]:
-                output[topic_inv_base + "/signal"] = str(inverter["signal"])
-                output[topic_inv_base + "/temperature"] = str(inverter["temperature"])
-                output[topic_inv_base + "/frequency"] = str(inverter["frequency"])
-                output[topic_inv_base + "/power"] = str(sum(inverter["power"]))
-                output[topic_inv_base + "/voltage"] = str(mean(inverter["voltage"]))
+                inverter_payload["signal"] = inverter["signal"]
+                inverter_payload["temperature"] = inverter["temperature"]
+                inverter_payload["frequency"] = inverter["frequency"]
+                inverter_payload["power"] = sum(inverter["power"])
+                inverter_payload["voltage"] = mean(inverter["voltage"])
 
                 for panel_index, panel_power in enumerate(inverter["power"], start=1):
-                    output[topic_inv_base + "/" + str(panel_index) + "/power"] = str(panel_power)
+                    inverter_payload[f"panel_{panel_index}_power"] = panel_power
 
                 for panel_index, panel_voltage in enumerate(inverter["voltage"], start=1):
-                    output[topic_inv_base + "/" + str(panel_index) + "/voltage"] = str(
-                        panel_voltage
-                    )
+                    inverter_payload[f"panel_{panel_index}_voltage"] = panel_voltage
+
+            output[inverter_topic_base] = json.dumps(inverter_payload)
 
         return output
