@@ -112,9 +112,42 @@ class MQTTHandler:
         ecu_device = self._get_device_payload(ecu_id, "ECU")
 
         # ECU sensors
-        self._publish_discovery_payload("sensor", ecu_id, "power", ecu_device, topic_base, "current_power", "ECU Power", "power", "W", "mdi:solar-power")
-        self._publish_discovery_payload("sensor", ecu_id, "today_energy", ecu_device, topic_base, "today_energy", "ECU Today Energy", "energy", "kWh", "mdi:solar-power")
-        self._publish_discovery_payload("sensor", ecu_id, "lifetime_energy", ecu_device, topic_base, "lifetime_energy", "ECU Lifetime Energy", "energy", "kWh", "mdi:solar-power")
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "power",
+            ecu_device,
+            topic_base,
+            "current_power",
+            "ECU Power",
+            "power",
+            "W",
+            "mdi:solar-power",
+        )
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "today_energy",
+            ecu_device,
+            topic_base,
+            "today_energy",
+            "ECU Today Energy",
+            "energy",
+            "kWh",
+            "mdi:solar-power",
+        )
+        self._publish_discovery_payload(
+            "sensor",
+            ecu_id,
+            "lifetime_energy",
+            ecu_device,
+            topic_base,
+            "lifetime_energy",
+            "ECU Lifetime Energy",
+            "energy",
+            "kWh",
+            "mdi:solar-power",
+        )
 
         # Inverter sensors
         for inverter in data["inverters"]:
@@ -122,21 +155,109 @@ class MQTTHandler:
             inv_topic_base = topic_base + "/" + str(inv_uid)
             inv_device = self._get_device_payload(inv_uid, "Inverter", via_device=ecu_id)
 
-            self._publish_discovery_payload("binary_sensor", inv_uid, "online", inv_device, inv_topic_base, "online", "Inverter Online", None, None, "mdi:power-plug")
-            self._publish_discovery_payload("sensor", inv_uid, "signal", inv_device, inv_topic_base, "signal", "Inverter Signal", "signal_strength", "dBm", "mdi:wifi")
-            self._publish_discovery_payload("sensor", inv_uid, "temperature", inv_device, inv_topic_base, "temperature", "Inverter Temperature", "temperature", "°C", "mdi:thermometer")
-            self._publish_discovery_payload("sensor", inv_uid, "frequency", inv_device, inv_topic_base, "frequency", "Inverter Frequency", "frequency", "Hz", "mdi:sine-wave")
-            self._publish_discovery_payload("sensor", inv_uid, "power", inv_device, inv_topic_base, "power", "Inverter Power", "power", "W", "mdi:solar-power")
-            self._publish_discovery_payload("sensor", inv_uid, "voltage", inv_device, inv_topic_base, "voltage", "Inverter Voltage", "voltage", "V", "mdi:lightning-bolt")
+            self._publish_discovery_payload(
+                "binary_sensor",
+                inv_uid,
+                "online",
+                inv_device,
+                inv_topic_base,
+                "online",
+                "Inverter Online",
+                None,
+                None,
+                "mdi:power-plug",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "signal",
+                inv_device,
+                inv_topic_base,
+                "signal",
+                "Inverter Signal",
+                "signal_strength",
+                "dBm",
+                "mdi:wifi",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "temperature",
+                inv_device,
+                inv_topic_base,
+                "temperature",
+                "Inverter Temperature",
+                "temperature",
+                "°C",
+                "mdi:thermometer",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "frequency",
+                inv_device,
+                inv_topic_base,
+                "frequency",
+                "Inverter Frequency",
+                "frequency",
+                "Hz",
+                "mdi:sine-wave",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "power",
+                inv_device,
+                inv_topic_base,
+                "power",
+                "Inverter Power",
+                "power",
+                "W",
+                "mdi:solar-power",
+            )
+            self._publish_discovery_payload(
+                "sensor",
+                inv_uid,
+                "voltage",
+                inv_device,
+                inv_topic_base,
+                "voltage",
+                "Inverter Voltage",
+                "voltage",
+                "V",
+                "mdi:lightning-bolt",
+            )
 
             # Panel sensors
             for i, panel_power in enumerate(inverter.get("power", [])):
                 panel_num = i + 1
-                self._publish_discovery_payload("sensor", inv_uid, f"panel_{panel_num}_power", inv_device, inv_topic_base + f"/{panel_num}", "power", f"Panel {panel_num} Power", "power", "W", "mdi:solar-panel")
+                self._publish_discovery_payload(
+                    "sensor",
+                    inv_uid,
+                    f"panel_{panel_num}_power",
+                    inv_device,
+                    inv_topic_base + f"/{panel_num}",
+                    "power",
+                    f"Panel {panel_num} Power",
+                    "power",
+                    "W",
+                    "mdi:solar-panel",
+                )
 
             for i, panel_voltage in enumerate(inverter.get("voltage", [])):
                 panel_num = i + 1
-                self._publish_discovery_payload("sensor", inv_uid, f"panel_{panel_num}_voltage", inv_device, inv_topic_base + f"/{panel_num}", "voltage", f"Panel {panel_num} Voltage", "voltage", "V", "mdi:lightning-bolt")
+                self._publish_discovery_payload(
+                    "sensor",
+                    inv_uid,
+                    f"panel_{panel_num}_voltage",
+                    inv_device,
+                    inv_topic_base + f"/{panel_num}",
+                    "voltage",
+                    f"Panel {panel_num} Voltage",
+                    "voltage",
+                    "V",
+                    "mdi:lightning-bolt",
+                )
 
         self.discovery_messages_sent = True
 
@@ -150,7 +271,19 @@ class MQTTHandler:
             payload["via_device"] = str(via_device)
         return payload
 
-    def _publish_discovery_payload(self, component, device_id, object_id, device_payload, state_topic_base, value_key, name, device_class, unit, icon):
+    def _publish_discovery_payload(
+        self,
+        component,
+        device_id,
+        object_id,
+        device_payload,
+        state_topic_base,
+        value_key,
+        name,
+        device_class,
+        unit,
+        icon,
+    ):
         discovery_topic = f"{self.discovery_topic}{component}/aps_{device_id}_{object_id}/config"
         payload = {
             "name": name,
@@ -162,6 +295,9 @@ class MQTTHandler:
             "payload_available": "online",
             "payload_not_available": "offline",
         }
+        if component == "binary_sensor":
+            payload["payload_on"] = "true"
+            payload["payload_off"] = "false"
         if device_class:
             payload["device_class"] = device_class
         if unit:
