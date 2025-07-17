@@ -136,6 +136,24 @@ Without any specific configuration, aps2mqtt use your system's timezone as a ref
 
 * If you are using aps2mqtt as a Docker image, you can configure the timezone for the whole container using the environement variable 'TZ'
 
+### MQTT Discovery
+
+APS2MQTT supports MQTT discovery for seamless integration with home automation platforms like Home Assistant.
+
+When enabled, `aps2mqtt` will publish configuration messages to the specified discovery prefix. These messages allow your home automation platform to automatically discover and configure the ECU and all its associated inverters and panels as devices and entities.
+
+To enable this feature, set the `MQTT_DISCOVERY_ENABLED` option to `True` in your configuration.
+
+```yaml
+mqtt:
+  # ... other mqtt settings
+  MQTT_DISCOVERY_ENABLED: True
+  # Optional: Change the discovery prefix if your platform requires it
+  MQTT_DISCOVERY_PREFIX: 'homeassistant'
+```
+
+Once enabled, you should see the devices automatically appear in your home automation platform.
+
 ### Example
 
 #### Unsecured connection
@@ -172,7 +190,7 @@ mqtt:
   MQTT_BROKER_PORT: 8883
   MQTT_BROKER_SECURED_CONNECTION: True
   MQTT_DISCOVERY_ENABLED: True
-
+  MQTT_DISCOVERY_PREFIX: 'custom_discovery'
 ```
 
 #### Using Docker Compose
@@ -252,21 +270,3 @@ The `aps2mqtt` retrieves data from the entire PV array as a whole, as well as de
     *   `voltage` - The AC voltage (in V).
     *   `panel_[ID]_power` - The current power generation (in W) of the selected panel.
     *   `panel_[ID]_voltage` - The AC voltage (in V) of the selected panel.
-
-### MQTT Discovery
-
-APS2MQTT supports MQTT discovery for seamless integration with home automation platforms like Home Assistant.
-
-When enabled, `aps2mqtt` will publish configuration messages to the specified discovery prefix. These messages allow your home automation platform to automatically discover and configure the ECU and all its associated inverters and panels as devices and entities.
-
-To enable this feature, set the `MQTT_DISCOVERY_ENABLED` option to `True` in your configuration.
-
-```yaml
-mqtt:
-  # ... other mqtt settings
-  MQTT_DISCOVERY_ENABLED: True
-  # Optional: Change the discovery prefix if your platform requires it
-  MQTT_DISCOVERY_PREFIX: 'homeassistant'
-```
-
-Once enabled, you should see the devices automatically appear in your home automation platform.
