@@ -109,6 +109,8 @@ APS2MQTT configuration can be provided by a yaml config file or by environment v
 | MQTT_CLIENT_ID | Client ID if the MQTT client | "MyAwesomeClient" | "APS2MQTT" |
 | MQTT_TOPIC_PREFIX | Topic prefix for publishing | "my-personal-topic" | "" |
 | MQTT_RETAIN | Retain MQTT messages | True | False |
+| MQTT_DISCOVERY_ENABLED | Enable MQTT discovery | True | False |
+| MQTT_DISCOVERY_PREFIX | MQTT discovery prefix | "homeassistant" | "homeassistant" |
 | MQTT_BROKER_SECURED_CONNECTION | Use secure connection to MQTT broker | True | False |
 | MQTT_BROKER_CACERTS_PATH | Path to the cacerts file | "/User/johndoe/.ssl/cacerts" | None |
 
@@ -152,6 +154,7 @@ mqtt:
   MQTT_BROKER_USER: 'johndoe'
   MQTT_BROKER_PASSWD: 'itsasecret'
   MQTT_RETAIN: True
+  MQTT_DISCOVERY_ENABLED: True
 ```
 
 #### Secured connection
@@ -168,6 +171,7 @@ mqtt:
   MQTT_BROKER_HOST: 'broker.hivemq.com'
   MQTT_BROKER_PORT: 8883
   MQTT_BROKER_SECURED_CONNECTION: True
+  MQTT_DISCOVERY_ENABLED: True
 
 ```
 
@@ -192,24 +196,77 @@ services:
       - MQTT_BROKER_SECURED_CONNECTION=True
 ```
 
+## Breaking Changes
+
+With the introduction of MQTT Discovery, the MQTT topic structure has changed significantly to align with Home Assistant's best practices for discovery. Previously, each data point was published to a separate topic (e.g., `aps/[ECU_ID]/power`). Now, data for an ECU or an inverter is published as a single JSON payload to a base topic (e.g., `aps/[ECU_ID]` or `aps/[ECU_ID]/[INVERTER_ID]`).
+
+**Migration Steps:**
+
+1.  **Enable MQTT Discovery:** It is highly recommended to enable MQTT Discovery by setting `MQTT_DISCOVERY_ENABLED: True` in your `mqtt` configuration. This will automatically configure your devices in Home Assistant.
+2.  **Update Manual Configurations:** If you were previously using manual MQTT sensor configurations in Home Assistant (or any other platform), you will need to update them to reflect the new JSON payload structure and base topics. You will need to use `value_template` to extract the specific values from the JSON payload.
+
+    **Example (Old vs. New for ECU Power):**
+
+    **Old (Manual Sensor):**
+    ```yaml
+    mqtt:
+      sensor:
+        - name: "ECU Power"
+          state_topic: "aps/123456789/power"
+          unit_of_measurement: "W"
+    ```
+
+    **New (Manual Sensor - if not using discovery):**
+    ```yaml
+    mqtt:
+      sensor:
+        - name: "ECU Power"
+          state_topic: "aps/123456789"
+          unit_of_measurement: "W"
+          value_template: "{{ value_json.current_power }}"
+    ```
+
+    Similar changes will be required for all inverter and panel sensors.
+
 ## MQTT topics
 
-The aps2mqtt retrieve from the whole PV array as a whole as well as each individual inverter in detail.
+The `aps2mqtt` retrieves data from the entire PV array as a whole, as well as detailed information for each individual inverter.
 
-* aps/status - current status of the service, `online` or `offline`. The `offline` message is sent using LWT
+*   `aps/status` - Current status of the `aps2mqtt` service, publishing `online` or `offline`. The `offline` message is sent as a Last Will and Testament (LWT) message by the MQTT broker upon unexpected disconnection. This topic is also used as the `availability_topic` for MQTT Discovery.
 
 ### ECU data
 
-* aps/[ECU_ID]/power - total amount of power (in W) being generated right now
-* aps/[ECU_ID]/energy/today - total amount of energy (in kWh) generated today
-* aps/[ECU_ID]/energy/lifetime - total amount of energy (in kWh) generated from the lifetime of the array
+*   `aps/[ECU_ID]` - Publishes a JSON payload containing the following data for the entire ECU:
+    *   `current_power` - Total amount of power (in W) being generated right now.
+    *   `today_energy` - Total amount of energy (in kWh) generated today.
+    *   `lifetime_energy` - Total amount of energy (in kWh) generated from the lifetime of the array.
 
 ### Inverter data
 
-* aps/[ECU_ID]/[INVERTER_ID]/online - True is the inverter is communicating with the ECU, False otherwise
-* aps/[ECU_ID]/[INVERTER_ID]/signal - the signal strength of the zigbee connection
-* aps/[ECU_ID]/[INVERTER_ID]/temperature - the temperature of the inverter in your local unit (C or F)
-* aps/[ECU_ID]/[INVERTER_ID]/frequency - the AC power frequency (in Hz)
-* aps/[ECU_ID]/[INVERTER_ID]/power - the current power generation (in W), sum of all panel power
-* aps/[ECU_ID]/[INVERTER_ID]/voltage - the AC voltage (in V)
-* aps/[ECU_ID]/[INVERTER_ID]/[PANEL_ID]/power - the current power generation (in W) of the selected panel
+*   `aps/[ECU_ID]/[INVERTER_ID]` - Publishes a JSON payload containing the following data for each individual inverter:
+    *   `online` - `True` if the inverter is communicating with the ECU, `False` otherwise.
+    *   `signal` - The signal strength of the zigbee connection.
+    *   `temperature` - The temperature of the inverter in your local unit (C or F).
+    *   `frequency` - The AC power frequency (in Hz).
+    *   `power` - The current power generation (in W), sum of all panel power.
+    *   `voltage` - The AC voltage (in V).
+    *   `panel_[ID]_power` - The current power generation (in W) of the selected panel.
+    *   `panel_[ID]_voltage` - The AC voltage (in V) of the selected panel.
+
+### MQTT Discovery
+
+APS2MQTT supports MQTT discovery for seamless integration with home automation platforms like Home Assistant.
+
+When enabled, `aps2mqtt` will publish configuration messages to the specified discovery prefix. These messages allow your home automation platform to automatically discover and configure the ECU and all its associated inverters and panels as devices and entities.
+
+To enable this feature, set the `MQTT_DISCOVERY_ENABLED` option to `True` in your configuration.
+
+```yaml
+mqtt:
+  # ... other mqtt settings
+  MQTT_DISCOVERY_ENABLED: True
+  # Optional: Change the discovery prefix if your platform requires it
+  MQTT_DISCOVERY_PREFIX: 'homeassistant'
+```
+
+Once enabled, you should see the devices automatically appear in your home automation platform.

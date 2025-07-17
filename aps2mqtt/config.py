@@ -5,6 +5,13 @@ import yaml
 from str2bool import str2bool_exc
 
 
+class MQTTDiscoveryConfig:
+    """MQTT Discovery config"""
+
+    def __init__(self, cfg):
+        self.prefix = cfg.get("MQTT_DISCOVERY_PREFIX", "homeassistant")
+
+
 class MQTTConfig:
     """MQTT config"""
 
@@ -16,6 +23,9 @@ class MQTTConfig:
         self.client_id = cfg.get("MQTT_CLIENT_ID", "APS2MQTT")
         self.topic_prefix = cfg.get("MQTT_TOPIC_PREFIX", "")
         self.retain = str2bool_exc(str(cfg.get("MQTT_RETAIN", False)))
+        self.discovery_enabled = str2bool_exc(str(cfg.get("MQTT_DISCOVERY_ENABLED", False)))
+        if self.discovery_enabled:
+            self.discovery = MQTTDiscoveryConfig(cfg)
         self.secured_connection = str2bool_exc(
             str(cfg.get("MQTT_BROKER_SECURED_CONNECTION", False))
         )
