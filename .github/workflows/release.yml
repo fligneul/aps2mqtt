@@ -2,7 +2,7 @@ name: 🚚 Release & deploy
 
 on:
   push:
-    branches: 
+    branches:
       - 'main'
 
 permissions:
@@ -18,42 +18,42 @@ jobs:
       contents: write
 
     steps:
-    - name: Setup | Wait for builds to succeed
-      uses: lewagon/wait-on-check-action@v1.4.0
-      with:
-        ref: ${{ github.ref }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
-        running-workflow-name: wait-for-check-regexp
-        check-regexp: build-.*
+      - name: ⏳ Wait for successful builds
+        uses: lewagon/wait-on-check-action@v1.4.0
+        with:
+          ref: ${{ github.ref }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          running-workflow-name: wait-for-check-regexp
+          check-regexp: build-.*
 
-    - name: Setup | Checkout repository
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
-        fetch-depth: 0
+      - name: 🛎️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
 
-    - name: Action | Semantic Version Release
-      id: release
-      uses: python-semantic-release/python-semantic-release@v10.2.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        git_committer_name: "semantic-release"
-        git_committer_email: "actions@users.noreply.github.com"
+      - name: 🔖 Create semantic version release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10.2.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "semantic-release"
+          git_committer_email: "actions@users.noreply.github.com"
 
-    - name: Publish | Upload to GitHub Release Assets
-      uses: python-semantic-release/publish-action@v10.2.0
-      if: steps.release.outputs.released == 'true'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ steps.release.outputs.tag }}
+      - name: 📦 Upload release assets
+        uses: python-semantic-release/publish-action@v10.2.0
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
 
-    - name: Upload | Distribution Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: distribution-artifacts
-        path: dist
-        if-no-files-found: error
+      - name: ⬆️ Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-artifacts
+          path: dist
+          if-no-files-found: error
 
   deploy-pypi:
     runs-on: ubuntu-latest
@@ -67,14 +67,14 @@ jobs:
       id-token: write
 
     steps:
-      - name: Setup | Download Build Artifacts
+      - name: ⬇️ Download distribution artifacts
         uses: actions/download-artifact@v4
         id: artifact-download
         with:
           name: distribution-artifacts
           path: dist
 
-      - name: Publish | Publish package distributions to PyPI
+      - name: 🐍 Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
   deploy-dockerhub:
@@ -83,26 +83,26 @@ jobs:
     if: ${{ needs.release.outputs.released == 'true' }}
 
     steps:
-      - name: Setup | Checkout repository
+      - name: 🛎️ Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Setup | Set up QEMU
+      - name: ⚙️ Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Setup | Set up Docker Buildx
+      - name: 🛠️ Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           platforms: ${{ vars.DOCKER_BUILD_PLATFORMS }}
 
-      - name: Action | Login to Docker Hub
+      - name: 🔑 Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Publish | Build and push to Docker Hub
+      - name: 🐳 Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
