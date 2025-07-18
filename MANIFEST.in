@@ -1,0 +1,9 @@
+# Exclude the entire test directory
+prune test
+
+# Exclude macOS-specific files
+global-exclude .DS_Store
+
+# Exclude Python bytecode and cache
+global-exclude *.pyc
+global-exclude __pycache__
