@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## v2.0.0 (2025-07-17)
+
+### Continuous Integration
+
+- Update commit parser to use conventional style and correct changelog file definition ([`facd0bb`](https://github.com/fligneul/aps2mqtt/commit/facd0bb42bc932dc25a58ebe0d48d273fa454cbd))
+
+### Documentation
+
+- Update badges ([`97e2709`](https://github.com/fligneul/aps2mqtt/commit/97e270959073e3ba3b217544c023ac5ffcb21de4))
+
+- Update CHANGELOG ([`cd21dce`](https://github.com/fligneul/aps2mqtt/commit/cd21dce88e142c27a18b9f0fbea5469985534c95))
+
+### Features
+
+- Add mqtt discovery support ([#24](https://github.com/fligneul/aps2mqtt/pull/24), [`5d6e52f`](https://github.com/fligneul/aps2mqtt/commit/5d6e52fb8c7f55346cef208b6d12a46a0e4c34ca))
+
+### Breaking Changes
+
+- MQTT topics have been updated to comply with Home Assistant MQTT
+
 ## v1.3.0 (2025-07-15)
 
 ### Chores
