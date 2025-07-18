@@ -13,8 +13,12 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: ubuntu-latest
     concurrency: release
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.release.outputs.version }}
 
     permissions:
+      id-token: write
       contents: write
 
     steps:
@@ -40,6 +44,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           git_committer_name: "semantic-release"
           git_committer_email: "actions@users.noreply.github.com"
+          build: "true"
+          changelog: "true"
+          commit: "true"
+          push: "true"
+          tag: "true"
+          vcs_release: "true"
 
       - name: 📦 Upload release assets
         uses: python-semantic-release/publish-action@v10.2.0
@@ -108,4 +118,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:${{ needs.release.outputs.version }},${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
+          tags: ${{ vars.DOCKERHUB_USER }}/${{ vars.DOCKERHUB_REPOSITORY }}:${{ needs.release.outputs.version }},${{ vars.DOCKERHUB_USER }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
