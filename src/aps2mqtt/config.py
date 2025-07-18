@@ -1,6 +1,8 @@
 """Application config classes, can be set by file or env variable"""
+
 import os
 from zoneinfo import ZoneInfo
+from dateutil import tz
 import yaml
 from str2bool import str2bool_exc
 
@@ -40,7 +42,7 @@ class ECUConfig:
         self.ipaddr = cfg["APS_ECU_IP"]
         self.port = int(cfg.get("APS_ECU_PORT", 8899))
         ecu_timezone = cfg.get("APS_ECU_TIMEZONE", os.getenv("TZ", None))
-        self.timezone = ZoneInfo(str(ecu_timezone)) if ecu_timezone is not None else None
+        self.timezone = ZoneInfo(str(ecu_timezone)) if ecu_timezone is not None else tz.tzlocal()
         self.auto_restart = str2bool_exc(str(cfg.get("APS_ECU_AUTO_RESTART", False)))
         if self.auto_restart:
             self.wifi_config = WifiConfig(

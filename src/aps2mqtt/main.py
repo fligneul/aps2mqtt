@@ -29,8 +29,6 @@ def cli_args():
 
 def main():
     """Application main"""
-    update_time = datetime(1970, 1, 1).astimezone()
-
     args = cli_args()
     conf = Config(args.config_path)
 
@@ -39,17 +37,19 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
 
+    update_time = datetime(1970, 1, 1, tzinfo=timezone.utc)
+
     ecu = ECU(conf.ecu_config)
     mqtt_handler = MQTTHandler(conf.mqtt_config)
     mqtt_handler.connect_mqtt()
 
     while 1:
-        if datetime.now().astimezone() > update_time:
+        if datetime.now(timezone.utc) > update_time:
             if ecu.is_night():
                 update_time = ecu.wake_up_time()
                 _LOGGER.info(
                     "Time to sleep, next update at: %s",
-                    update_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
+                    update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
                 )
             else:
                 try:
@@ -58,15 +58,15 @@ def main():
                         raise ValueError("Retrieved data are empty")
                     update_time = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S").replace(
                         tzinfo=conf.ecu_config.timezone
-                    ).astimezone() + timedelta(seconds=360)
+                    ) + timedelta(seconds=360)
                     mqtt_handler.publish_values(data)
                 except Exception as e:
-                    update_time = datetime.now().astimezone() + timedelta(seconds=60)
+                    update_time = datetime.now(timezone.utc) + timedelta(seconds=60)
                     _LOGGER.error("An exception occured: %s -> %s", e.__class__.__name__, str(e))
                     _LOGGER.debug("Exception trace:", exc_info=True)
                 _LOGGER.info(
                     "Update finished, next update at: %s",
-                    update_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
+                    update_time.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z"),
                 )
 
         time.sleep(5)
