@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends binutils
 COPY requirements.txt .
 RUN pip install --user -r requirements.txt pyinstaller --no-warn-script-location
 
-COPY aps2mqtt/ /app/aps2mqtt
+COPY src/aps2mqtt/ /app/aps2mqtt
 WORKDIR /app
 RUN /root/.local/bin/pyinstaller --collect-all tzdata --onefile /app/aps2mqtt/__main__.py -n aps2mqtt
 
