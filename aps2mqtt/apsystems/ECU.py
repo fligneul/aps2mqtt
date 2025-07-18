@@ -1,6 +1,7 @@
 """Handle ECU requests"""
+
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
 from suntime import Sun
 from aps2mqtt.apsystems.APSystemsSocket import APSystemsSocket, APSystemsInvalidData
@@ -25,6 +26,7 @@ class ECU:
             self.ecu_location = Sun(
                 ecu_config.ecu_position_latitude, ecu_config.ecu_position_longitude
             )
+        self.timezone = ecu_config.timezone
 
     def is_night(self):
         return (
@@ -34,17 +36,15 @@ class ECU:
                 and self.cached_data.get("qty_of_online_inverters", 0) == 0
             )
             and (
-                datetime.now().astimezone() < self.ecu_location.get_local_sunrise_time()
-                or datetime.now().astimezone() > self.ecu_location.get_local_sunset_time()
+                datetime.now(timezone.utc) < self.ecu_location.get_sunrise_time()
+                or datetime.now(timezone.utc) > self.ecu_location.get_sunset_time()
             )
         )
 
     def wake_up_time(self):
-        if self.ecu_location.get_local_sunrise_time() < datetime.now().astimezone():
-            return self.ecu_location.get_local_sunrise_time(
-                datetime.now().astimezone().date() + timedelta(days=1)
-            )
-        return self.ecu_location.get_local_sunrise_time()
+        if self.ecu_location.get_sunrise_time() < datetime.now(timezone.utc):
+            return self.ecu_location.get_sunrise_time(datetime.today() + timedelta(days=1))
+        return self.ecu_location.get_sunrise_time()
 
     def invalid_data(self):
         # we got invalid data, increment retry counter
