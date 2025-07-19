@@ -45,7 +45,7 @@ def main():
 
     while 1:
         if datetime.now(timezone.utc) > update_time:
-            if ecu.is_night():
+            if ecu.should_sleep():
                 update_time = ecu.wake_up_time()
                 _LOGGER.info(
                     "Time to sleep, next update at: %s",
