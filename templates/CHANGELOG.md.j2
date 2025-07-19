@@ -1,7 +1,7 @@
-# Changelog
+# CHANGELOG
 
 {%- if ctx.history.unreleased %}
-## [Unreleased]
+## Unreleased
 
 {%- for type, commits in ctx.history.unreleased|dictsort %}
 {%- if type == "features" %}
@@ -28,13 +28,11 @@
 ### ⬆️ Dependencies
 {%- elif type == "revert" %}
 ### ⏪ Revert
-{%- else %}
-### Other
 {%- endif %}
 
 {%- for commit in commits %}
 {%- if commit.descriptions %}
-- {{ commit.descriptions[0] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ ctx.vcs_url }}/commit/{{ commit.commit.hexsha }}){% if commit.linked_merge_request %}, [#{{ commit.linked_merge_request | replace('#', '') }}]({{ ctx.vcs_url }}/pull/{{ commit.linked_merge_request | replace('#', '') }}){% endif %})
+- {{ commit.descriptions[0][0]|upper}}{{commit.descriptions[0][1:] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ commit.hexsha | commit_hash_url }}){% if commit.linked_merge_request %}, {{"[%s](%s)" | format(commit.linked_merge_request,commit.linked_merge_request | pull_request_url)}}{% endif %})
 {%- endif %}
 {%- endfor %}
 
@@ -42,7 +40,7 @@
 {%- endif %}
 
 {%- for version, release in ctx.history.released.items() %}
-## [{{ version.as_tag() }}] - {{ release.tagged_date.strftime("%Y-%m-%d") }}
+## {{ version.as_tag() }} ({{ release.tagged_date.strftime("%Y-%m-%d") }})
 
 {%- for type, commits in release.elements|dictsort %}
 {%- if type == "features" %}
@@ -69,13 +67,11 @@
 ### ⬆️ Dependencies
 {%- elif type == "revert" %}
 ### ⏪ Revert
-{%- else %}
-### Other
 {%- endif %}
 
 {%- for commit in commits %}
 {%- if commit.descriptions %}
-- {{ commit.descriptions[0] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ ctx.vcs_url }}/commit/{{ commit.commit.hexsha }}){% if commit.linked_merge_request %}, [#{{ commit.linked_merge_request | replace('#', '') }}]({{ ctx.vcs_url }}/pull/{{ commit.linked_merge_request | replace('#', '') }}){% endif %})
+- {{ commit.descriptions[0][0]|upper}}{{commit.descriptions[0][1:] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ commit.hexsha | commit_hash_url }}){% if commit.linked_merge_request %}, {{"[%s](%s)" | format(commit.linked_merge_request,commit.linked_merge_request | pull_request_url)}}{% endif %})
 {%- endif %}
 {%- endfor %}
 
@@ -86,7 +82,7 @@
 ### 🚨 Breaking Changes
 
 {%- for description in commit.breaking_descriptions %}
-- {{ description }}
+- {{ description[0]|upper}}{{description[1:] }}
 {%- endfor %}
 
 {%- endif %}
