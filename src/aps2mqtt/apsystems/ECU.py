@@ -28,7 +28,7 @@ class ECU:
             )
         self.timezone = ecu_config.timezone
 
-    def is_night(self):
+    def should_sleep(self):
         return (
             self.stop_at_night
             and (
