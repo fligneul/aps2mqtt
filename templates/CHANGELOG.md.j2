@@ -1,0 +1,95 @@
+# Changelog
+
+{%- if ctx.history.unreleased %}
+## [Unreleased]
+
+{%- for type, commits in ctx.history.unreleased|dictsort %}
+{%- if type == "features" %}
+### ✨ Features
+{%- elif type == "bug fixes" %}
+### 🐛 Bug Fixes
+{%- elif type == "performance improvements" %}
+### ⚡ Performance Improvements
+{%- elif type == "refactoring" %}
+### ♻️ Refactor
+{%- elif type == "documentation" %}
+### 📝 Documentation
+{%- elif type == "continuous integration" %}
+### 🚀 CI/CD
+{%- elif type == "build" %}
+### 📦 Build
+{%- elif type == "chores" %}
+### 🧹 Chores
+{%- elif type == "style" %}
+### 🎨 Style
+{%- elif type == "testing" %}
+### 🧪 Tests
+{%- elif type == "dependencies" %}
+### ⬆️ Dependencies
+{%- elif type == "revert" %}
+### ⏪ Revert
+{%- else %}
+### Other
+{%- endif %}
+
+{%- for commit in commits %}
+{%- if commit.descriptions %}
+- {{ commit.descriptions[0] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ ctx.vcs_url }}/commit/{{ commit.commit.hexsha }}){% if commit.linked_merge_request %}, [#{{ commit.linked_merge_request | replace('#', '') }}]({{ ctx.vcs_url }}/pull/{{ commit.linked_merge_request | replace('#', '') }}){% endif %})
+{%- endif %}
+{%- endfor %}
+
+{%- endfor %}
+{%- endif %}
+
+{%- for version, release in ctx.history.released.items() %}
+## [{{ version.as_tag() }}] - {{ release.tagged_date.strftime("%Y-%m-%d") }}
+
+{%- for type, commits in release.elements|dictsort %}
+{%- if type == "features" %}
+### ✨ Features
+{%- elif type == "bug fixes" %}
+### 🐛 Bug Fixes
+{%- elif type == "performance improvements" %}
+### ⚡ Performance Improvements
+{%- elif type == "refactoring" %}
+### ♻️ Refactor
+{%- elif type == "documentation" %}
+### 📝 Documentation
+{%- elif type == "continuous integration" %}
+### 🚀 CI/CD
+{%- elif type == "build" %}
+### 📦 Build
+{%- elif type == "chores" %}
+### 🧹 Chores
+{%- elif type == "style" %}
+### 🎨 Style
+{%- elif type == "testing" %}
+### 🧪 Tests
+{%- elif type == "dependencies" %}
+### ⬆️ Dependencies
+{%- elif type == "revert" %}
+### ⏪ Revert
+{%- else %}
+### Other
+{%- endif %}
+
+{%- for commit in commits %}
+{%- if commit.descriptions %}
+- {{ commit.descriptions[0] }} ([`{{ commit.commit.hexsha[:7] }}`]({{ ctx.vcs_url }}/commit/{{ commit.commit.hexsha }}){% if commit.linked_merge_request %}, [#{{ commit.linked_merge_request | replace('#', '') }}]({{ ctx.vcs_url }}/pull/{{ commit.linked_merge_request | replace('#', '') }}){% endif %})
+{%- endif %}
+{%- endfor %}
+
+{%- endfor %}
+{%- for type, commits in release.elements.items() %}
+{%- for commit in commits %}
+{%- if commit.breaking_descriptions %}
+### 🚨 Breaking Changes
+
+{%- for description in commit.breaking_descriptions %}
+- {{ description }}
+{%- endfor %}
+
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+{%- endfor %}
