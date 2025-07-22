@@ -41,7 +41,7 @@ jobs:
         id: release
         uses: python-semantic-release/python-semantic-release@v10.2.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.SEMANTIC_PAT_TOKEN }}
           git_committer_name: "semantic-release"
           git_committer_email: "actions@users.noreply.github.com"
           build: "true"
@@ -55,7 +55,7 @@ jobs:
         uses: python-semantic-release/publish-action@v10.2.0
         if: steps.release.outputs.released == 'true'
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.SEMANTIC_PAT_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
 
       - name: ⬆️ Upload distribution artifacts
@@ -117,5 +117,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: ${{ vars.DOCKER_BUILD_PLATFORMS }}
           push: true
           tags: ${{ vars.DOCKERHUB_USER }}/${{ vars.DOCKERHUB_REPOSITORY }}:${{ needs.release.outputs.version }},${{ vars.DOCKERHUB_USER }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
