@@ -1,5 +1,7 @@
 # CHANGELOG
-## Unreleased
+## v2.0.2 (2025-07-22)
+### 🐛 Bug Fixes
+- Release process ([`ebe97dd`](https://github.com/fligneul/aps2mqtt/commit/ebe97dd1fbd98f8e464065475c92daa715973783), [#32](https://github.com/fligneul/aps2mqtt/pull/32))
 ### 🧪 Tests
 - Add comprehensive test suite ([`66dd84b`](https://github.com/fligneul/aps2mqtt/commit/66dd84b95fa297197863cebe72c0bd605703e323), [#30](https://github.com/fligneul/aps2mqtt/pull/30))
 ## v2.0.1 (2025-07-19)
