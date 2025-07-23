@@ -30,7 +30,7 @@ dependencies = [
     "paho.mqtt~=2.1",
     "pyyaml~=6.0",
     "numpy~=2.3",
-    "suntime~=1.2",
+    "suntime~=1.2.5",
     "str2bool~=1.1",
     "tzdata>=2025.2",
 ]
@@ -62,7 +62,7 @@ template_dir = "templates"
 changelog_file = "CHANGELOG.md"
 
 [tool.semantic_release.commit_parser_options]
-allowed_tags = ["build", "chore", "ci", "docs", "feat", "fix", "perf", "style", "refactor", "test"]
+allowed_tags = ["build", "chore", "ci", "docs", "feat", "fix", "perf", "style", "refactor", "test", "deps"]
 minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
 
