@@ -2,8 +2,8 @@ FROM python:3.11-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends binutils
 
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt pyinstaller --no-warn-script-location
+COPY pyproject.toml .
+RUN pip install --user .[dev] --no-warn-script-location
 
 COPY src/aps2mqtt/ /app/aps2mqtt
 WORKDIR /app
