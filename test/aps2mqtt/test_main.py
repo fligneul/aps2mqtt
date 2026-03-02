@@ -1,12 +1,13 @@
 import unittest
-from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
+from unittest.mock import MagicMock, patch
 from zoneinfo import ZoneInfo
+
 from aps2mqtt.main import cli_args, main
 
-class TestMain(unittest.TestCase):
 
-    @patch('aps2mqtt.main.ArgumentParser')
+class TestMain(unittest.TestCase):
+    @patch("aps2mqtt.main.ArgumentParser")
     def test_cli_args(self, mock_parser):
         # Arrange
         mock_parser_instance = MagicMock()
@@ -24,13 +25,15 @@ class TestMain(unittest.TestCase):
         )
         mock_parser_instance.parse_args.assert_called_once()
 
-    @patch('aps2mqtt.main.Config')
-    @patch('aps2mqtt.main.ECU')
-    @patch('aps2mqtt.main.MQTTHandler')
-    @patch('aps2mqtt.main.time.sleep', side_effect=InterruptedError)  # To break the loop
-    @patch('aps2mqtt.main.datetime')
-    @patch('aps2mqtt.main.cli_args')
-    def test_main_loop(self, mock_cli_args, mock_datetime, mock_sleep, mock_mqtt, mock_ecu, mock_config):
+    @patch("aps2mqtt.main.Config")
+    @patch("aps2mqtt.main.ECU")
+    @patch("aps2mqtt.main.MQTTHandler")
+    @patch("aps2mqtt.main.time.sleep", side_effect=InterruptedError)  # To break the loop
+    @patch("aps2mqtt.main.datetime")
+    @patch("aps2mqtt.main.cli_args")
+    def test_main_loop(
+        self, mock_cli_args, mock_datetime, mock_sleep, mock_mqtt, mock_ecu, mock_config
+    ):
         # Arrange
         mock_args = MagicMock()
         mock_args.config_path = None
@@ -51,12 +54,14 @@ class TestMain(unittest.TestCase):
 
         # Mock datetime.now to control the loop
         mock_datetime.now.side_effect = [
-            datetime(2025, 7, 20, 11, 59, 0, tzinfo=timezone.utc), # Before update_time
-            datetime(2025, 7, 20, 12, 0, 1, tzinfo=timezone.utc), # After update_time, to trigger update
-            datetime(2025, 7, 20, 12, 10, 0, tzinfo=timezone.utc)  # After next update_time
+            datetime(2025, 7, 20, 11, 59, 0, tzinfo=UTC),  # Before update_time
+            datetime(2025, 7, 20, 12, 0, 1, tzinfo=UTC),  # After update_time, to trigger update
+            datetime(2025, 7, 20, 12, 10, 0, tzinfo=UTC),  # After next update_time
         ]
         mock_datetime.strptime.return_value = datetime(2025, 7, 20, 12, 0, 0)
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw) if args else mock_datetime.now()
+        mock_datetime.side_effect = lambda *args, **kw: (
+            datetime(*args, **kw) if args else mock_datetime.now()
+        )
 
         # Act
         with self.assertRaises(InterruptedError):
@@ -66,5 +71,6 @@ class TestMain(unittest.TestCase):
         mock_ecu_instance.update.assert_called_once()
         mock_mqtt_instance.publish_values.assert_called_once()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

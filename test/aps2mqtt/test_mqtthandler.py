@@ -1,11 +1,11 @@
-import unittest
-from unittest.mock import MagicMock, patch, call
 import json
+import unittest
+from unittest.mock import MagicMock, patch
+
 from aps2mqtt.mqtthandler import MQTTHandler
 
 
 class TestMQTTHandler(unittest.TestCase):
-
     def setUp(self):
         self.mock_mqtt_config = MagicMock()
         self.mock_mqtt_config.discovery_enabled = True

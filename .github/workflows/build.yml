@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.x"]
+        python-version: ["3.11", "3.13", "3.x"]
 
     steps:
       - name: 🛒 Checkout repository
@@ -26,7 +26,7 @@ jobs:
       - name: 👷🏻 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest
+          pip install . build
 
       - name: 🏗️ Build application wheel
         run: python -m build
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.x"]
+        python-version: ["3.11", "3.13", "3.x"]
 
     steps:
       - name: 🛒 Checkout repository
@@ -50,7 +50,7 @@ jobs:
       - name: 👷🏻 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest
+          pip install . pytest
 
       - name: 🕵🏻 Test with pytest
         run: pytest --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml
@@ -63,7 +63,7 @@ jobs:
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
 
-  build-pylint:
+  build-ruff:
     runs-on: ubuntu-latest
     steps:
       - name: 🛒 Checkout repository
@@ -74,14 +74,15 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: 👷🏻 Install dependencies
+      - name: 👷🏻 Install ruff
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pylint pylint-exit
+          pip install ruff
 
-      - name: 🕵🏻 Analyse code with pylint
+      - name: 🕵🏻 Check code with ruff
         run: |
-          pylint --init-hook="import sys; import os; sys.path.append(os.path.abspath('.'));" $(git ls-files '*.py') || pylint-exit $?
+          ruff check .
+          ruff format --check .
 
   build-docker:
     runs-on: ubuntu-latest

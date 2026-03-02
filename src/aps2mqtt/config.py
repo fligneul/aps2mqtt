@@ -1,23 +1,49 @@
 """Application config classes, can be set by file or env variable"""
 
 import os
+from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
-from dateutil import tz
+
 import yaml
+from dateutil import tz
 from str2bool import str2bool_exc
 
 
+@dataclass
 class MQTTDiscoveryConfig:
     """MQTT Discovery config"""
 
-    def __init__(self, cfg):
+    prefix: str
+
+    def __init__(self, cfg: dict) -> None:
         self.prefix = cfg.get("MQTT_DISCOVERY_PREFIX", "homeassistant")
 
 
+@dataclass
+class WifiConfig:
+    """Wifi config of the ECU"""
+
+    ssid: str
+    passwd: str
+
+
+@dataclass
 class MQTTConfig:
     """MQTT config"""
 
-    def __init__(self, cfg):
+    broker_addr: str = "127.0.0.1"
+    broker_port: int = 1883
+    broker_user: str = ""
+    broker_passwd: str = ""
+    client_id: str = "APS2MQTT"
+    topic_prefix: str = ""
+    retain: bool = False
+    discovery_enabled: bool = False
+    discovery: MQTTDiscoveryConfig | None = None
+    secured_connection: bool = False
+    cacerts_path: str | None = None
+
+    def __init__(self, cfg: dict) -> None:
         self.broker_addr = cfg.get("MQTT_BROKER_HOST", "127.0.0.1")
         self.broker_port = int(cfg.get("MQTT_BROKER_PORT", 1883))
         self.broker_user = cfg.get("MQTT_BROKER_USER", "")
@@ -32,13 +58,23 @@ class MQTTConfig:
             str(cfg.get("MQTT_BROKER_SECURED_CONNECTION", False))
         )
         if self.secured_connection:
-            self.cacerts_path = cfg.get("MQTT_BROKER_CACERTS_PATH", None)
+            self.cacerts_path = cfg.get("MQTT_BROKER_CACERTS_PATH")
 
 
+@dataclass
 class ECUConfig:
     """ECU config"""
 
-    def __init__(self, cfg):
+    ipaddr: str = ""
+    port: int = 8899
+    timezone: ZoneInfo | tz.tzlocal = field(default_factory=tz.tzlocal)
+    auto_restart: bool = False
+    wifi_config: WifiConfig | None = None
+    stop_at_night: bool = False
+    ecu_position_latitude: float = 48.864716
+    ecu_position_longitude: float = 2.349014
+
+    def __init__(self, cfg: dict) -> None:
         self.ipaddr = cfg["APS_ECU_IP"]
         self.port = int(cfg.get("APS_ECU_PORT", 8899))
         ecu_timezone = cfg.get("APS_ECU_TIMEZONE", os.getenv("TZ", None))
@@ -54,29 +90,24 @@ class ECUConfig:
             self.ecu_position_longitude = float(cfg.get("APS_ECU_POSITION_LNG", 2.349014))
 
 
-class WifiConfig:
-    """Wifi config of the ECU"""
-
-    def __init__(self, ssid, passwd):
-        self.ssid = ssid
-        self.passwd = passwd
-
-
 class Config:
     """Application config"""
 
-    def __init__(self, config_path=None):
+    mqtt_config: MQTTConfig
+    ecu_config: ECUConfig
+
+    def __init__(self, config_path: str | None = None) -> None:
         if config_path is not None:
-            self.__load_yaml_config_file(config_path)
+            self._load_yaml_config_file(config_path)
         elif os.getenv("CONFIG_FILE") is not None:
-            self.__load_yaml_config_file(os.getenv("CONFIG_FILE"))
+            self._load_yaml_config_file(os.getenv("CONFIG_FILE"))
         else:
             cfg = os.environ
             self.mqtt_config = MQTTConfig(cfg)
             self.ecu_config = ECUConfig(cfg)
 
-    def __load_yaml_config_file(self, config_path):
-        with open(config_path, "r", encoding="UTF-8") as yml_cfg:
+    def _load_yaml_config_file(self, config_path: str) -> None:
+        with open(config_path, encoding="UTF-8") as yml_cfg:
             cfg = yaml.safe_load(yml_cfg)
             self.mqtt_config = MQTTConfig(cfg["mqtt"])
             self.ecu_config = ECUConfig(cfg["ecu"])

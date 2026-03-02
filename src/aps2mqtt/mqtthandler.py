@@ -1,12 +1,17 @@
 """Handle MQTT connection and data publishing"""
 
-import logging
-import time
 import atexit
 import json
+import logging
+import time
 from statistics import mean
+from typing import TYPE_CHECKING
+
 import certifi
 from paho.mqtt import client as mqtt_client
+
+if TYPE_CHECKING:
+    from aps2mqtt.config import MQTTConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,7 +21,7 @@ _MAX_RETRY = 10
 class MQTTHandler:
     """Handle MQTT connection to broker and publish message"""
 
-    def __init__(self, mqtt_config):
+    def __init__(self, mqtt_config: "MQTTConfig") -> None:
         self.mqtt_config = mqtt_config
         self.topic_prefix = (
             mqtt_config.topic_prefix + "/" if len(mqtt_config.topic_prefix.strip()) > 0 else ""
@@ -27,7 +32,7 @@ class MQTTHandler:
         self.status_topic = self.topic_prefix + "aps/status"
         self.discovery_messages_sent = False
 
-    def on_connect(self, client, userdata, flags, reason_code, properties):
+    def on_connect(self, client, userdata, flags, reason_code, properties) -> None:
         """Callback function on broker connection"""
         del userdata, flags, properties
         if reason_code == 0:
@@ -36,12 +41,12 @@ class MQTTHandler:
         else:
             _LOGGER.error("Failed to connect: %s", reason_code)
 
-    def on_disconnect(self, client, userdata, flags, reason_code, properties):
+    def on_disconnect(self, client, userdata, flags, reason_code, properties) -> None:
         """Callback function on broker disconnection"""
         del client, userdata, flags, properties
         _LOGGER.info("Disconnected from MQTT Broker: %s", reason_code)
 
-    def _publish(self, client, topic, msg, retain=False):
+    def _publish(self, client, topic: str, msg: str, retain: bool = False) -> None:
         # If mqtt_retain is True in config, all messages are retained.
         # Otherwise, only LWT uses retain.
         actual_retain = retain or self.mqtt_config.retain
@@ -51,7 +56,7 @@ class MQTTHandler:
         else:
             _LOGGER.error("Failed to send message to topic %s: %s", topic, result.rc)
 
-    def connect_mqtt(self):
+    def connect_mqtt(self) -> None:
         """Create connection to MQTT broker"""
         _LOGGER.debug("Create MQTT client")
         self.client = mqtt_client.Client(
@@ -96,13 +101,13 @@ class MQTTHandler:
         self.client.loop_start()
         atexit.register(self.disconnect)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self.client.is_connected():
             _LOGGER.info("Publishing 'offline' status on graceful exit.")
             self._publish(self.client, self.status_topic, "offline", retain=True)
         self.client.loop_stop()
 
-    def publish_discovery_messages(self, data):
+    def publish_discovery_messages(self, data: dict) -> None:
         """Publish discovery messages for all sensors"""
         if not self.mqtt_config.discovery_enabled or self.discovery_messages_sent:
             return
@@ -229,7 +234,7 @@ class MQTTHandler:
             )
 
             # Panel sensors
-            for i, panel_power in enumerate(inverter.get("power", [])):
+            for i, _panel_power in enumerate(inverter.get("power", [])):
                 panel_num = i + 1
                 self._publish_discovery_payload(
                     "sensor",
@@ -244,7 +249,7 @@ class MQTTHandler:
                     "mdi:solar-panel",
                 )
 
-            for i, panel_voltage in enumerate(inverter.get("voltage", [])):
+            for i, _panel_voltage in enumerate(inverter.get("voltage", [])):
                 panel_num = i + 1
                 self._publish_discovery_payload(
                     "sensor",
@@ -261,7 +266,9 @@ class MQTTHandler:
 
         self.discovery_messages_sent = True
 
-    def _get_device_payload(self, device_id, device_name, via_device=None):
+    def _get_device_payload(
+        self, device_id: str, device_name: str, via_device: str | None = None
+    ) -> dict:
         payload = {
             "identifiers": [str(device_id)],
             "name": f"APS {device_name} {device_id}",
@@ -273,17 +280,17 @@ class MQTTHandler:
 
     def _publish_discovery_payload(
         self,
-        component,
-        device_id,
-        object_id,
-        device_payload,
-        state_topic_base,
-        value_key,
-        name,
-        device_class,
-        unit,
-        icon,
-    ):
+        component: str,
+        device_id: str,
+        object_id: str,
+        device_payload: dict,
+        state_topic_base: str,
+        value_key: str,
+        name: str,
+        device_class: str | None,
+        unit: str | None,
+        icon: str | None,
+    ) -> None:
         discovery_topic = f"{self.discovery_topic}{component}/aps_{device_id}_{object_id}/config"
         payload = {
             "name": name,
@@ -307,7 +314,7 @@ class MQTTHandler:
 
         self._publish(self.client, discovery_topic, json.dumps(payload), retain=True)
 
-    def publish_values(self, data):
+    def publish_values(self, data: dict) -> None:
         """Publish ECU data to MQTT"""
         _LOGGER.debug("Start MQTT publish")
 
@@ -327,7 +334,7 @@ class MQTTHandler:
             self._publish(self.client, topic, value)
         _LOGGER.debug("MQTT values published")
 
-    def _parse_data(self, data):
+    def _parse_data(self, data: dict) -> dict:
         output = {}
         ecu_id = data["ecu_id"]
         ecu_topic_base = self.topic_prefix + "aps/" + str(ecu_id)
