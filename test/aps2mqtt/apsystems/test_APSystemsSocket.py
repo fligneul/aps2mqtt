@@ -1,6 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock, call
-from aps2mqtt.apsystems.APSystemsSocket import APSystemsSocket, APSystemsInvalidData
+from unittest.mock import call, patch
+
+from aps2mqtt.apsystems.APSystemsSocket import APSystemsInvalidData, APSystemsSocket
+
 
 class TestAPSystemsSocket(unittest.TestCase):
 

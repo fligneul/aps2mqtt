@@ -1,10 +1,11 @@
 import logging
 import unittest
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
-from aps2mqtt.apsystems.ECU import ECU
+
 from suntime import Sun
+
+from aps2mqtt.apsystems.ECU import ECU
 
 
 class TestECU(unittest.TestCase):
